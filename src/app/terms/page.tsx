@@ -1,0 +1,61 @@
+import Link from "next/link";
+import { PageHeader } from "@/components/ui/PageHeader";
+
+export const metadata = { title: "Terms and Conditions" };
+
+export default function TermsPage() {
+  return (
+    <div className="page">
+      <PageHeader title="Terms & Conditions" backHref="/" variant="close" />
+      <div className="body">
+        <div className="pad" style={{ paddingBottom: 32 }}>
+          <p className="muted" style={{ fontSize: 12 }}>
+            Last updated {new Date().getFullYear()}
+          </p>
+          <p style={{ fontSize: 13.5, marginTop: 10 }}>
+            Oblee is a discovery platform for events and parties. These terms cover everyone who uses Oblee: attendees, organisers
+            and administrators.
+          </p>
+          <ol className="tm">
+            <li>
+              <b>Posting events.</b> You confirm that you have the right to post the event and that the details you publish are
+              accurate: name, venue, date, contacts, prices and entry rules.
+            </li>
+            <li>
+              <b>Lawful use.</b> You agree to comply with all applicable laws and regulations where your event takes place.
+            </li>
+            <li>
+              <b>Content.</b> You will not post harmful, illegal, misleading or copyrighted content. Only upload images you have the
+              right to use.
+            </li>
+            <li>
+              <b>Moderation.</b> Oblee may remove, archive or edit any event at any time, including when a report is upheld.
+            </li>
+            <li>
+              <b>Attendance and payments.</b> Oblee lists events and passes RSVP messages. Organisers manage their own bookings,
+              tables and payments until in-app payments are available. Oblee does not process payments today.
+            </li>
+            <li>
+              <b>Liability.</b> Oblee is not liable for any loss, damage or incident that occurs at an event. Verify the venue,
+              security and identity requirements before you travel.
+            </li>
+            <li>
+              <b>Accounts.</b> You are responsible for keeping your login details safe. Do not share your account.
+            </li>
+          </ol>
+          <p className="note">
+            Questions about these terms? Read the{" "}
+            <Link className="link" href="/privacy">
+              Privacy Policy
+            </Link>{" "}
+            or return to{" "}
+            <Link className="link" href="/">
+              discovery
+            </Link>
+            .
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
