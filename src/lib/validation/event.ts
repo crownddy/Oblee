@@ -11,6 +11,7 @@ import {
   TICKET_MODES,
   isEventCategory,
 } from "@/lib/constants";
+import { eventImagePath } from "@/lib/utils/images";
 
 const hex = z.string().regex(/^#[0-9a-fA-F]{6}$/, "Use a hex colour.");
 
@@ -64,7 +65,16 @@ export const eventInputSchema = z
       .array(z.string().trim().min(1).max(24))
       .max(MAX_TAGS, `Use up to ${MAX_TAGS} tags.`)
       .default([]),
-    heroImageUrl: z.string().trim().url("The image link is not valid.").max(600).nullable(),
+    // Either a private-bucket object path (uploads) or an https artwork link.
+    heroImageUrl: z
+      .string()
+      .trim()
+      .max(600)
+      .nullable()
+      .refine(
+        (value) => !value || Boolean(eventImagePath(value)) || value.startsWith("https://"),
+        "The image link is not valid.",
+      ),
     colorFrom: hex,
     colorTo: hex,
     isFree: z.boolean(),

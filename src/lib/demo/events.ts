@@ -339,6 +339,7 @@ export function demoEvents(now: Date = new Date()): EventDetail[] {
       timezone: DEFAULT_TIMEZONE,
       isFree: !seed.tickets?.length,
       heroImageUrl: null,
+      heroImagePath: null,
       colorFrom: palette[0],
       colorTo: palette[1],
       status: "published" as const,

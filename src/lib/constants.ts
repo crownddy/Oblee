@@ -152,4 +152,6 @@ export const MAX_TAGS = 8;
 export const MAX_DESCRIPTION = 500;
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 export const EVENT_IMAGE_BUCKET = "event-images";
+// Covers live in a private bucket; viewers get short-lived signed URLs.
+export const SIGNED_IMAGE_URL_TTL = 60 * 60;
 export const DEFAULT_TIMEZONE = "Africa/Lagos";

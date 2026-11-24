@@ -27,6 +27,15 @@ export const registerSchema = z
     path: ["confirmPassword"],
   });
 
+export const dateOfBirthSchema = z.object({
+  dateOfBirth: z
+    .string()
+    .trim()
+    .min(1, "Enter your date of birth.")
+    .refine(isIsoDate, "Enter a valid date of birth.")
+    .refine((value) => isAdult(value), `You must be at least ${MINIMUM_AGE} years old to use Oblee.`),
+});
+
 export const forgotPasswordSchema = z.object({ email: emailField });
 
 export const resetPasswordSchema = z

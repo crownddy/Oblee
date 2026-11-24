@@ -13,6 +13,8 @@ import { demoEventSummaries, demoEvents, findDemoEvent } from "@/lib/demo/events
 import { canViewEvent, filterEvents, paginate, sortByStart } from "@/lib/utils/events";
 import { resolveDateFilter } from "@/lib/utils/ranges";
 import { searchTerms } from "@/lib/utils/events";
+import { eventImagePath } from "@/lib/utils/images";
+import { resolveEventImages } from "@/lib/services/storage";
 
 const EVENT_COLUMNS =
   "id, title, category, venue, city, starts_at, timezone, is_free, hero_image_url, color_from, color_to, status, organiser_id, tags, description, security_note, identity_note, visibility, published_at, archived_at, profiles!events_organiser_id_fkey(full_name, avatar_url), featured_events(rank)";
@@ -72,7 +74,17 @@ function isFeatured(row: EventRow): boolean {
   return Array.isArray(featured) ? featured.length > 0 : Boolean(featured);
 }
 
-function mapSummary(row: EventRow, savedIds: Set<string>): EventSummary {
+function coverUrl(row: EventRow, images?: Map<string, string | null>): string | null {
+  if (!row.hero_image_url) return null;
+  if (!images) return row.hero_image_url;
+  return images.get(row.hero_image_url) ?? null;
+}
+
+function mapSummary(
+  row: EventRow,
+  savedIds: Set<string>,
+  images?: Map<string, string | null>,
+): EventSummary {
   const organiser = organiserJoin(row.profiles);
   return {
     id: row.id,
@@ -83,7 +95,7 @@ function mapSummary(row: EventRow, savedIds: Set<string>): EventSummary {
     startsAt: row.starts_at,
     timezone: row.timezone || DEFAULT_TIMEZONE,
     isFree: row.is_free,
-    heroImageUrl: row.hero_image_url,
+    heroImageUrl: coverUrl(row, images),
     colorFrom: row.color_from,
     colorTo: row.color_to,
     status: row.status,
@@ -172,9 +184,11 @@ export async function listPublishedEvents(options: ListEventsOptions = {}): Prom
   }
 
   const savedIds = await savedIdsFor(viewer);
+  const rows = (data ?? []) as unknown as EventRow[];
+  const images = await resolveEventImages(rows.map((row) => row.hero_image_url));
   const total = count ?? 0;
   return {
-    events: ((data ?? []) as unknown as EventRow[]).map((row) => mapSummary(row, savedIds)),
+    events: rows.map((row) => mapSummary(row, savedIds, images)),
     total,
     page,
     pageCount: Math.max(1, Math.ceil(total / pageSize)),
@@ -205,12 +219,12 @@ export async function listFeaturedEvents(limit = FEATURED_LIMIT): Promise<EventS
   }
 
   const savedIds = await savedIdsFor(viewer);
-  const rows = (data ?? []) as unknown as Array<{ events: EventRow }>;
-  return rows
+  const rows = ((data ?? []) as unknown as Array<{ events: EventRow }>)
     .map((row) => row.events)
     .filter((row) => row && row.status === "published" && row.visibility === "public")
-    .slice(0, limit)
-    .map((row) => mapSummary(row, savedIds));
+    .slice(0, limit);
+  const images = await resolveEventImages(rows.map((row) => row.hero_image_url));
+  return rows.map((row) => mapSummary(row, savedIds, images));
 }
 
 export async function getEventForViewer(id: string): Promise<EventDetail | null> {
@@ -274,8 +288,10 @@ export async function getEventForViewer(id: string): Promise<EventDetail | null>
   }
 
   const organiser = organiserJoin(row.profiles);
+  const images = await resolveEventImages([row.hero_image_url]);
   return {
-    ...mapSummary(row, saved),
+    ...mapSummary(row, saved, images),
+    heroImagePath: eventImagePath(row.hero_image_url),
     description: row.description,
     securityNote: row.security_note,
     identityNote: row.identity_note,
@@ -324,7 +340,9 @@ export async function listEventsForOrganiser(
   }
 
   const savedIds = new Set<string>();
-  return ((data ?? []) as unknown as EventRow[]).map((row) => mapSummary(row, savedIds));
+  const rows = (data ?? []) as unknown as EventRow[];
+  const images = await resolveEventImages(rows.map((row) => row.hero_image_url));
+  return rows.map((row) => mapSummary(row, savedIds, images));
 }
 
 export async function listSavedEvents(viewer: Viewer): Promise<EventSummary[]> {
@@ -341,11 +359,11 @@ export async function listSavedEvents(viewer: Viewer): Promise<EventSummary[]> {
     throw new Error("Could not load saved events.");
   }
 
-  const rows = (data ?? []) as unknown as Array<{ events: EventRow }>;
-  return rows
+  const rows = ((data ?? []) as unknown as Array<{ events: EventRow }>)
     .map((row) => row.events)
-    .filter((row) => row && row.status === "published")
-    .map((row) => mapSummary(row, new Set([row.id])));
+    .filter((row) => row && row.status === "published");
+  const images = await resolveEventImages(rows.map((row) => row.hero_image_url));
+  return rows.map((row) => mapSummary(row, new Set([row.id]), images));
 }
 
 export async function countSavedEvents(viewer: Viewer): Promise<number> {

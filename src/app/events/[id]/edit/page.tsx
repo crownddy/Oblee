@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { EventWizard, type WizardInitial } from "@/components/organiser/EventWizard";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { requireUser } from "@/lib/auth/session";
+import { requireVerifiedAdult } from "@/lib/auth/session";
 import { getEventForViewer } from "@/lib/services/events";
 import { DEFAULT_TIMEZONE } from "@/lib/constants";
 import { fromInstant } from "@/lib/utils/format";
@@ -11,7 +11,7 @@ export const metadata = { title: "Edit event" };
 
 export default async function EditEventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const viewer = await requireUser(`/events/${id}/edit`);
+  const viewer = await requireVerifiedAdult(`/events/${id}/edit`);
   const event = await getEventForViewer(id);
   if (!event) notFound();
 
@@ -48,7 +48,8 @@ export default async function EditEventPage({ params }: { params: Promise<{ id: 
     tags: event.tags,
     colorFrom: event.colorFrom,
     colorTo: event.colorTo,
-    heroImageUrl: event.heroImageUrl,
+    heroImageUrl: event.heroImagePath ?? event.heroImageUrl,
+    heroImagePreview: event.heroImagePath ? event.heroImageUrl : null,
     tickets: event.tickets,
     tables: event.tables,
     contacts: event.contacts,

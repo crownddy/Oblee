@@ -33,4 +33,7 @@ for migration in supabase/migrations/*.sql; do
   echo "applying $migration"
   psql_run < "$migration"
 done
-psql_run < supabase/tests/rls_private_events.sql
+for suite in supabase/tests/rls_*.sql; do
+  echo "running $suite"
+  psql_run < "$suite"
+done

@@ -294,6 +294,10 @@ export interface Database {
       remove_event: { Args: { p_event_id: string }; Returns: undefined };
       promote_to_organiser: { Args: Record<string, never>; Returns: undefined };
       is_admin: { Args: Record<string, never>; Returns: boolean };
+      is_verified_adult: { Args: { p_user_id?: string }; Returns: boolean };
+      can_read_event_image: { Args: { p_name: string }; Returns: boolean };
+      my_age_status: { Args: Record<string, never>; Returns: Json };
+      set_my_date_of_birth: { Args: { p_date_of_birth: string }; Returns: string };
       admin_list_users: {
         Args: Record<string, never>;
         Returns: Array<{
@@ -302,6 +306,7 @@ export interface Database {
           email: string;
           role: UserRole;
           created_at: string;
+          age_verified: boolean;
         }>;
       };
     };

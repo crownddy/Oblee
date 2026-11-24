@@ -99,6 +99,8 @@ Migrations live in `supabase/migrations` and are idempotent where practical:
 | `0007_storage.sql` | `event-images` bucket and per-user storage policies |
 | `0008_private_events.sql` | `event_access` grants, `can_view_event()` / `can_manage_event()`, private-aware policies for every related table, `grant_event_access()` / `revoke_event_access()` |
 | `0009_age_restriction.sql` | `profiles.date_of_birth`, an 18+ check constraint, and a sign-up trigger that refuses under-18 accounts |
+| `0010_private_event_images.sql` | `event-images` bucket switched to private, `can_read_event_image()` and the storage read policy, legacy public URLs rewritten to object paths, per-organiser image ownership trigger |
+| `0011_age_verification.sql` | `my_age_status()`, `set_my_date_of_birth()`, `is_verified_adult()`, the publish trigger for unverified accounts, and `admin_list_users().age_verified` |
 
 ### Roles and security
 
@@ -108,6 +110,13 @@ Migrations live in `supabase/migrations` and are idempotent where practical:
   edit, archive or re-publish their own events; admins can act on any event.
 * Featured placement, report triage and role changes are admin-only database operations. The UI
   hides the controls, and RLS/policies reject the write even if a client sends it.
+* Event covers live in a private bucket. `events.hero_image_url` stores either an https artwork
+  link or an object path such as `<organiser-uuid>/<image-uuid>.jpg`. The app mints signed URLs
+  (one hour) for the current viewer, and `can_read_event_image()` only signs files whose event the
+  viewer may already read — plus the uploader's own folder and administrators.
+* Publishing needs a verified 18+ account. `enforce_verified_organiser()` refuses any INSERT or
+  UPDATE that leaves an event published for an unverified organiser, so the rule holds even if a
+  client skips the UI. Accounts created before `0009` verify once at `/verify-age`.
 * Saved events, drafts and archived listings stay private to their owner.
 * Private events are readable only by the organiser, administrators and attendees with an explicit
   row in `public.event_access`. The rule is implemented once, in `public.can_view_event()`, and
@@ -214,8 +223,9 @@ cookie on navigation; no other runtime configuration is required.
   credentials are configured.
 * Private-event grants are issued with `grant_event_access()` / `revoke_event_access()`; there is no
   organiser screen for them yet in this release.
-* The `event-images` bucket is public, so a cover file can be fetched by anyone holding its URL.
-  Private event rows and their text data are protected; moving covers to signed URLs is deferred.
+* Signed cover URLs expire after one hour. Pages are rendered per request, so a page that sits
+  open for more than an hour shows gradient covers until it is refreshed.
 * `npm run test:db` needs Docker. Without it, `npm test` still covers the shared application rules.
-* Existing accounts created before `0009_age_restriction.sql` keep a null `date_of_birth` until
-  they next edit their profile.
+* Existing accounts created before `0009_age_restriction.sql` keep a null `date_of_birth` until a
+  date is submitted at `/verify-age`. Until then they can browse, save and archive, but cannot
+  publish, edit or restore events. Age is self-declared; Oblee does not collect identity documents.

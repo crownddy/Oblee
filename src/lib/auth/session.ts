@@ -2,6 +2,7 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getMyAgeStatus, needsAgeVerification } from "@/lib/services/age";
 import type { Profile, UserRole, Viewer } from "@/lib/types/domain";
 
 async function loadViewer(): Promise<Viewer | null> {
@@ -57,6 +58,19 @@ export async function requireAdmin(): Promise<Viewer> {
   const viewer = await requireUser("/admin");
   if (viewer.profile?.role !== "admin") {
     redirect("/profile?notice=admin-only");
+  }
+  return viewer;
+}
+
+/**
+ * Publishing needs a verified 18+ account. Accounts created before the rule are
+ * sent to the one-field verification screen instead of being blocked outright.
+ */
+export async function requireVerifiedAdult(nextPath = "/events/new"): Promise<Viewer> {
+  const viewer = await requireUser(nextPath);
+  const status = await getMyAgeStatus();
+  if (needsAgeVerification(status)) {
+    redirect(`/verify-age?next=${encodeURIComponent(nextPath)}`);
   }
   return viewer;
 }

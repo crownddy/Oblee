@@ -2,7 +2,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { PromoteButton } from "@/components/profile/PromoteButton";
 import { EventWizard } from "@/components/organiser/EventWizard";
-import { canPublish, requireUser } from "@/lib/auth/session";
+import { canPublish, requireVerifiedAdult } from "@/lib/auth/session";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +13,7 @@ export default async function NewEventPage() {
     return <EventWizard mode="create" preview />;
   }
 
-  const viewer = await requireUser("/events/new");
+  const viewer = await requireVerifiedAdult("/events/new");
 
   if (!canPublish(viewer.profile)) {
     return (

@@ -31,6 +31,13 @@ Access rules:
 - `canViewEvent()` in `src/lib/utils/events.ts` mirrors the SQL rule. Change both together.
 - Registration requires `date_of_birth`; `registerSchema` rejects under-18s and
   `handle_new_user()` re-checks in the database (`0009_age_restriction.sql`). Never trust the form.
+- Accounts without a stored date of birth cannot publish, edit or restore events.
+  `enforce_verified_organiser()` (`0011_age_verification.sql`) is the authority; the UI gate is
+  `requireVerifiedAdult()` and the one-field screen is `/verify-age` (`set_my_date_of_birth`).
+- Event covers are private. `events.hero_image_url` holds an https link or an object path
+  (`<organiser-uuid>/<file>`). Sign paths server-side with `resolveEventImages()` in
+  `src/lib/services/storage.ts`; never call `getPublicUrl()` and never send a raw path to the browser.
+  `can_read_event_image()` (`0010_private_event_images.sql`) decides who may read a file.
 
 Gotchas:
 - Event statuses are only `published` / `archived` / `removed` (no draft).

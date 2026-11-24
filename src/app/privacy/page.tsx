@@ -24,8 +24,8 @@ export default function PrivacyPage() {
               <b>Age checks.</b> Oblee is for people aged 18 and over. We use your date of birth only to confirm your age,
               which we verify on the server when you register. We do not collect or keep identity documents, ID numbers or
               selfies. Your date of birth is not shown on your profile, is not returned by the public API and is not shared
-              with organisers. If you ask us to close your account, the date of birth is deleted with the rest of your
-              profile.
+              with organisers. Accounts created before the 18+ rule can confirm their date of birth once from their
+              profile. If you ask us to close your account, the date of birth is deleted with the rest of your profile.
             </li>
             <li>
               <b>Private events.</b> If you are approved for a private event, we store the link between your account and that
@@ -34,6 +34,8 @@ export default function PrivacyPage() {
             </li>
             <li>
               <b>Event content.</b> Event titles, descriptions, images, dates, venues and contact details you publish are public.
+              Uploaded cover images sit in a private storage bucket and are shown through short-lived signed links, so a
+              private event&apos;s cover is only served to people who may already see that event.
             </li>
             <li>
               <b>Reports.</b> If you report an event, your name and message go to Oblee administrators so the report can be

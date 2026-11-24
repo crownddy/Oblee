@@ -7,6 +7,7 @@ import { PromoteButton } from "@/components/profile/PromoteButton";
 import { logoutAction } from "@/lib/actions/auth";
 import { requireUser } from "@/lib/auth/session";
 import { listEventsForOrganiser } from "@/lib/services/events";
+import { getMyAgeStatus, needsAgeVerification } from "@/lib/services/age";
 import { initials, pluralize } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 
@@ -28,6 +29,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
   const profile = viewer.profile;
   const canPublish = profile?.role === "organiser" || profile?.role === "admin";
   const events = canPublish && profile ? await listEventsForOrganiser(profile.id, { archived: tab === "archived" }) : [];
+  const needsVerify = canPublish && needsAgeVerification(await getMyAgeStatus());
 
   return (
     <div className="page">
@@ -62,6 +64,19 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
             <Link className="btn o full" href="/admin" style={{ height: 46, marginBottom: 12 }}>
               <Icon name="shield" size={17} /> Admin dashboard
             </Link>
+          ) : null}
+
+          {needsVerify ? (
+            <div className="card" style={{ marginTop: 0, borderColor: "var(--pri)" }}>
+              <b>Verify your age to publish</b>
+              <p className="muted" style={{ fontSize: 12.5, marginTop: 4 }}>
+                Your account was created before Oblee asked for a date of birth. Add it once and your events go live
+                straight away. We never ask for an ID.
+              </p>
+              <Link className="btn full" href="/verify-age?next=%2Fevents%2Fnew" style={{ marginTop: 10 }}>
+                <Icon name="shield" size={17} /> Verify my age
+              </Link>
+            </div>
           ) : null}
 
           {profile?.role === "attendee" ? (

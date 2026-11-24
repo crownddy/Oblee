@@ -54,6 +54,7 @@ export async function adminListUsers(): Promise<AdminUser[]> {
     email: string | null;
     role: UserRole;
     created_at: string;
+    age_verified: boolean | null;
   }>;
 
   return rows.map((row) => ({
@@ -63,6 +64,7 @@ export async function adminListUsers(): Promise<AdminUser[]> {
     role: row.role,
     avatarUrl: null,
     createdAt: row.created_at,
+    ageVerified: Boolean(row.age_verified),
   }));
 }
 

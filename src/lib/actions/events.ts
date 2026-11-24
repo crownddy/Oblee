@@ -1,13 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { DEFAULT_TIMEZONE, EVENT_IMAGE_BUCKET } from "@/lib/constants";
+import { DEFAULT_TIMEZONE } from "@/lib/constants";
 import { CONFIG_REQUIRED_MESSAGE, isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { canPublish, requireUser } from "@/lib/auth/session";
 import { eventInputSchema, type EventInput } from "@/lib/validation/event";
 import { reportEventSchema } from "@/lib/validation/auth";
 import { toInstant, todayKey } from "@/lib/utils/format";
+import { eventImagePath, isOwnedEventImagePath } from "@/lib/utils/images";
+import { AGE_VERIFICATION_REQUIRED, getMyAgeStatus, needsAgeVerification } from "@/lib/services/age";
 
 export type EventActionResult =
   | { ok: true; id: string }
@@ -40,12 +42,16 @@ function buildPayload(input: EventInput) {
   };
 }
 
-function validateBusinessRules(input: EventInput): string | null {
+function validateBusinessRules(
+  input: EventInput,
+  viewer: { id: string; isAdmin: boolean },
+): string | null {
   const timezone = DEFAULT_TIMEZONE;
   if (input.date < todayKey(timezone)) {
     return "Pick today or a future date.";
   }
-  if (input.heroImageUrl && !input.heroImageUrl.includes(`${EVENT_IMAGE_BUCKET}/`)) {
+  const imagePath = eventImagePath(input.heroImageUrl);
+  if (imagePath && !viewer.isAdmin && !isOwnedEventImagePath(imagePath, viewer.id)) {
     return "Upload the event image through Oblee.";
   }
   return null;
@@ -58,11 +64,17 @@ export async function createEventAction(input: EventInput): Promise<EventActionR
     return { ok: false, error: "Switch your account to an organiser to post events." };
   }
 
+  const ageStatus = await getMyAgeStatus();
+  if (needsAgeVerification(ageStatus)) return { ok: false, error: AGE_VERIFICATION_REQUIRED };
+
   const parsed = eventInputSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Check your event details." };
   }
-  const businessError = validateBusinessRules(parsed.data);
+  const businessError = validateBusinessRules(parsed.data, {
+    id: viewer.id,
+    isAdmin: viewer.profile?.role === "admin",
+  });
   if (businessError) return { ok: false, error: businessError };
 
   const supabase = await createSupabaseServerClient();
@@ -78,14 +90,20 @@ export async function createEventAction(input: EventInput): Promise<EventActionR
 }
 
 export async function updateEventAction(eventId: string, input: EventInput): Promise<EventActionResult> {
-  await requireUser(`/events/${eventId}/edit`);
+  const viewer = await requireUser(`/events/${eventId}/edit`);
   if (!isSupabaseConfigured) return { ok: false, error: CONFIG_REQUIRED_MESSAGE };
+
+  const ageStatus = await getMyAgeStatus();
+  if (needsAgeVerification(ageStatus)) return { ok: false, error: AGE_VERIFICATION_REQUIRED };
 
   const parsed = eventInputSchema.safeParse(input);
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Check your event details." };
   }
-  const businessError = validateBusinessRules(parsed.data);
+  const businessError = validateBusinessRules(parsed.data, {
+    id: viewer.id,
+    isAdmin: viewer.profile?.role === "admin",
+  });
   if (businessError) return { ok: false, error: businessError };
 
   const supabase = await createSupabaseServerClient();

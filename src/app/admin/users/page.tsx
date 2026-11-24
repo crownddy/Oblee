@@ -31,7 +31,12 @@ export default async function AdminUsersPage() {
                 </b>
                 <small>{user.email}</small>
                 <small>
-                  <span className="badge">{user.role}</span>
+                  <span className="badge">{user.role}</span>{" "}
+                  {user.ageVerified ? (
+                    <span className="badge ok">Age verified</span>
+                  ) : (
+                    <span className="badge warn">No date of birth</span>
+                  )}
                 </small>
               </div>
               <UserRoleControl userId={user.id} role={user.role} isSelf={user.id === viewer.id} />

@@ -60,6 +60,9 @@ alter table storage.objects enable row level security;
 grant usage on schema auth, storage, public to anon, authenticated;
 grant usage on schema auth, storage to service_role;
 grant select on storage.buckets to anon, authenticated;
+-- Supabase grants storage.objects to the API roles and lets RLS decide rows.
+grant select on storage.objects to anon, authenticated;
+grant insert, update, delete on storage.objects to authenticated;
 
 create schema if not exists tests;
 

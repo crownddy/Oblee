@@ -12,6 +12,8 @@ export interface Profile {
 
 export interface AdminUser extends Profile {
   email: string;
+  /** False for accounts that still owe a date of birth (created before the 18+ rule). */
+  ageVerified: boolean;
 }
 
 export interface EventContact {
@@ -53,6 +55,8 @@ export interface EventSummary {
 }
 
 export interface EventDetail extends EventSummary {
+  /** Stored cover location: an object path in the private bucket, or an external link. */
+  heroImagePath: string | null;
   description: string;
   securityNote: string;
   identityNote: string;

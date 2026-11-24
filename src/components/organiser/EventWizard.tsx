@@ -20,6 +20,7 @@ import {
   MAX_IMAGE_BYTES,
   MAX_TAGS,
   SECURITY_OPTIONS,
+  SIGNED_IMAGE_URL_TTL,
   TABLE_COUNTS,
   TABLE_SEATS,
   TICKET_MODES,
@@ -35,6 +36,7 @@ import { CONFIG_REQUIRED_MESSAGE, isSupabaseConfigured } from "@/lib/supabase/co
 import type { EventContact } from "@/lib/types/domain";
 import type { EventInput } from "@/lib/validation/event";
 import { coverStyle } from "@/lib/utils/events";
+import { eventImagePath } from "@/lib/utils/images";
 import { cn } from "@/lib/utils/cn";
 import { formatEventDate, formatTime, toInstant, todayKey } from "@/lib/utils/format";
 
@@ -52,7 +54,10 @@ export interface WizardInitial {
   tags: string[];
   colorFrom: string;
   colorTo: string;
+  /** Stored cover: a path in the private bucket, or an external https link. */
   heroImageUrl: string | null;
+  /** Signed URL the form previews; only needed when heroImageUrl is a bucket path. */
+  heroImagePreview?: string | null;
   tickets: Array<{ name: string; price: number }>;
   tables: Array<{ seats: number; quantity: number }>;
   contacts: EventContact[];
@@ -189,6 +194,9 @@ export function EventWizard({
   const [step, setStep] = useState<Step>(1);
   const [draft, setDraft] = useState<Draft>(() => toDraft(initial));
   const [hasCover, setHasCover] = useState(Boolean(initial));
+  const [previewSrc, setPreviewSrc] = useState<string | null>(
+    initial?.heroImagePreview ?? (initial?.heroImageUrl && !eventImagePath(initial.heroImageUrl) ? initial.heroImageUrl : null),
+  );
   const [mapVenue, setMapVenue] = useState(initial?.venue ?? "");
   const [uploading, setUploading] = useState(false);
   const [publishedId, setPublishedId] = useState<string | null>(eventId ?? null);
@@ -207,7 +215,9 @@ export function EventWizard({
     setDraft((current) => ({ ...current, [key]: value }));
 
   const coverEvent = {
-    heroImageUrl: hasCover ? draft.heroImageUrl : null,
+    heroImageUrl: hasCover
+      ? previewSrc ?? (draft.heroImageUrl && !eventImagePath(draft.heroImageUrl) ? draft.heroImageUrl : null)
+      : null,
     colorFrom: draft.colorFrom,
     colorTo: draft.colorTo,
   };
@@ -328,8 +338,13 @@ export function EventWizard({
         toast("Upload failed. Try a smaller image.");
         return;
       }
-      const { data } = supabase.storage.from(EVENT_IMAGE_BUCKET).getPublicUrl(path);
-      setDraft((current) => ({ ...current, heroImageUrl: data.publicUrl }));
+      // Bucket is private: keep the path for the event and show a short-lived
+      // signed URL in the preview.
+      const { data: signed } = await supabase.storage
+        .from(EVENT_IMAGE_BUCKET)
+        .createSignedUrl(path, SIGNED_IMAGE_URL_TTL);
+      setDraft((current) => ({ ...current, heroImageUrl: path }));
+      setPreviewSrc(signed?.signedUrl ?? null);
       setHasCover(true);
       toast("Image uploaded.");
     } finally {
@@ -341,6 +356,7 @@ export function EventWizard({
   const useCoverArt = () => {
     const palette = COVER_PALETTES[Math.floor(Math.random() * COVER_PALETTES.length)] ?? COVER_PALETTES[0]!;
     setDraft((current) => ({ ...current, heroImageUrl: null, colorFrom: palette[0], colorTo: palette[1] }));
+    setPreviewSrc(null);
     setHasCover(true);
   };
 
@@ -506,6 +522,7 @@ export function EventWizard({
                   className="rmv"
                   onClick={() => {
                     setDraft((current) => ({ ...current, heroImageUrl: null }));
+                    setPreviewSrc(null);
                     setHasCover(false);
                   }}
                 >
