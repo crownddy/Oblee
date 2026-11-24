@@ -7,9 +7,12 @@ import {
   directionsUrl,
   fromInstant,
   isWeekend,
+  formatTime,
   money,
+  normaliseTimezone,
   toInstant,
 } from "@/lib/utils/format";
+import { DEFAULT_TIMEZONE } from "@/lib/constants";
 import { dayRange, resolveDateFilter, weekendRange } from "@/lib/utils/ranges";
 
 const LAGOS = "Africa/Lagos";
@@ -103,5 +106,30 @@ describe("date filters", () => {
   it("prefers an explicit date over the category shortcut", () => {
     const now = new Date("2026-11-25T12:00:00Z");
     expect(resolveDateFilter("Today", "2026-12-01", now, LAGOS)).toEqual(dayRange("2026-12-01", LAGOS));
+  });
+});
+
+describe("normaliseTimezone", () => {
+  it("keeps a zone the runtime knows", () => {
+    expect(normaliseTimezone("Africa/Lagos")).toBe("Africa/Lagos");
+    expect(normaliseTimezone("Europe/London")).toBe("Europe/London");
+  });
+
+  it("falls back when the stored zone is missing or unusable", () => {
+    expect(normaliseTimezone(null)).toBe(DEFAULT_TIMEZONE);
+    expect(normaliseTimezone(undefined)).toBe(DEFAULT_TIMEZONE);
+    expect(normaliseTimezone("")).toBe(DEFAULT_TIMEZONE);
+    expect(normaliseTimezone("Mars/Olympus")).toBe(DEFAULT_TIMEZONE);
+    expect(normaliseTimezone("../etc/passwd")).toBe(DEFAULT_TIMEZONE);
+  });
+
+  it("accepts the case-insensitive zone names the runtime allows", () => {
+    expect(normaliseTimezone("africa/lagos")).toBe("africa/lagos");
+  });
+
+  it("keeps formatting total for a hostile row", () => {
+    const iso = "2026-12-24T21:00:00Z";
+    const timezone = normaliseTimezone("not a zone");
+    expect(() => formatTime(iso, timezone)).not.toThrow();
   });
 });

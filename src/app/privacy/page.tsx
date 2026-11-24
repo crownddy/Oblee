@@ -33,7 +33,8 @@ export default function PrivacyPage() {
               remove the link when access is withdrawn.
             </li>
             <li>
-              <b>Event content.</b> Event titles, descriptions, images, dates, venues and contact details you publish are public.
+              <b>Event content.</b> Event titles, descriptions, images, dates, venues and contact details you publish
+              on a public event are public.
               Uploaded cover images sit in a private storage bucket and are shown through short-lived signed links, so a
               private event&apos;s cover is only served to people who may already see that event.
             </li>

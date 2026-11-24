@@ -12,6 +12,7 @@ import { getViewer, viewerRole } from "@/lib/auth/session";
 import { demoEventSummaries, demoEvents, findDemoEvent } from "@/lib/demo/events";
 import { canViewEvent, filterEvents, paginate, sortByStart } from "@/lib/utils/events";
 import { resolveDateFilter } from "@/lib/utils/ranges";
+import { normaliseTimezone } from "@/lib/utils/format";
 import { searchTerms } from "@/lib/utils/events";
 import { eventImagePath } from "@/lib/utils/images";
 import { resolveEventImages } from "@/lib/services/storage";
@@ -93,7 +94,7 @@ function mapSummary(
     venue: row.venue,
     city: row.city,
     startsAt: row.starts_at,
-    timezone: row.timezone || DEFAULT_TIMEZONE,
+    timezone: normaliseTimezone(row.timezone),
     isFree: row.is_free,
     heroImageUrl: coverUrl(row, images),
     colorFrom: row.color_from,

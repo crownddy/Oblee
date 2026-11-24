@@ -101,6 +101,7 @@ Migrations live in `supabase/migrations` and are idempotent where practical:
 | `0009_age_restriction.sql` | `profiles.date_of_birth`, an 18+ check constraint, and a sign-up trigger that refuses under-18 accounts |
 | `0010_private_event_images.sql` | `event-images` bucket switched to private, `can_read_event_image()` and the storage read policy, legacy public URLs rewritten to object paths, per-organiser image ownership trigger |
 | `0011_age_verification.sql` | `my_age_status()`, `set_my_date_of_birth()`, `is_verified_adult()`, the publish trigger for unverified accounts, and `admin_list_users().age_verified` |
+| `0012_content_limits.sql` | Length caps on the short event text fields and `is_valid_timezone()`, so a direct RPC call cannot store megabytes on a row or a timezone that breaks date formatting |
 
 ### Roles and security
 
@@ -114,6 +115,9 @@ Migrations live in `supabase/migrations` and are idempotent where practical:
   link or an object path such as `<organiser-uuid>/<image-uuid>.jpg`. The app mints signed URLs
   (one hour) for the current viewer, and `can_read_event_image()` only signs files whose event the
   viewer may already read — plus the uploader's own folder and administrators.
+* A signed cover URL is a temporary bearer credential: anyone holding it can fetch that one file
+  until it expires (`SIGNED_IMAGE_URL_TTL`, one hour). URLs are minted per request, never written to
+  the database, logged or included in emails, and the bucket itself is private.
 * Publishing needs a verified 18+ account. `enforce_verified_organiser()` refuses any INSERT or
   UPDATE that leaves an event published for an unverified organiser, so the rule holds even if a
   client skips the UI. Accounts created before `0009` verify once at `/verify-age`.
@@ -210,8 +214,9 @@ design/                the supplied visual prototype (reference only)
 ## Deployment
 
 The app is a standard Next.js project with no custom server. On Vercel: import the repository,
-add the environment variables above, and deploy. `proxy.ts` refreshes the Supabase session
-cookie on navigation; no other runtime configuration is required.
+add the environment variables above, and deploy. `src/proxy.ts` refreshes the Supabase session
+cookie on navigation; no other runtime configuration is required. `NEXT_PUBLIC_*` values are baked
+into the build, so set them before the first deploy, not afterwards.
 
 ## Known limitations
 

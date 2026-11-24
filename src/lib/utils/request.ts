@@ -12,8 +12,25 @@ export async function getOrigin(): Promise<string> {
   return siteUrl;
 }
 
-export function safeNextPath(value: FormDataEntryValue | string | null | undefined, fallback = "/profile"): string {
-  if (typeof value !== "string") return fallback;
-  if (!value.startsWith("/") || value.startsWith("//")) return fallback;
-  return value;
+const SAME_SITE_BASE = "https://oblee.invalid";
+
+/**
+ * Keeps `next` on this site. `//host`, `/\host` and names containing a control
+ * character all resolve to another origin, so the value is resolved against a
+ * throwaway base and only the path, query and hash are handed back.
+ */
+export function safeNextPath(
+  value: FormDataEntryValue | string | null | undefined,
+  fallback = "/profile",
+): string {
+  if (typeof value !== "string" || !value.startsWith("/")) return fallback;
+
+  let resolved: URL;
+  try {
+    resolved = new URL(value, SAME_SITE_BASE);
+  } catch {
+    return fallback;
+  }
+  if (resolved.origin !== SAME_SITE_BASE) return fallback;
+  return `${resolved.pathname}${resolved.search}${resolved.hash}`;
 }

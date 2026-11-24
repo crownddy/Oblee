@@ -2,6 +2,21 @@ import { DEFAULT_TIMEZONE } from "@/lib/constants";
 
 const LOCALE = "en-GB";
 
+/**
+ * Timezone stored on an event, or the Oblee default when it is missing or not a
+ * zone the runtime knows. Formatting with an unknown zone throws, so every
+ * stored value is checked once, where rows become domain objects.
+ */
+export function normaliseTimezone(timezone: string | null | undefined): string {
+  if (!timezone) return DEFAULT_TIMEZONE;
+  try {
+    new Intl.DateTimeFormat(LOCALE, { timeZone: timezone }).format(0);
+    return timezone;
+  } catch {
+    return DEFAULT_TIMEZONE;
+  }
+}
+
 export function money(value: number): string {
   return `₦${Number(value).toLocaleString("en-US")}`;
 }

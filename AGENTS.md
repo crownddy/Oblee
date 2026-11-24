@@ -14,6 +14,9 @@ Oblee is a Next.js 16 (App Router, Turbopack) + TypeScript + Tailwind 4 app back
 Supabase (Postgres, Auth, Storage). The visual reference is `design/oblee-prototype.html`;
 the running UI must keep that purple, mobile-first phone-frame design.
 
+The session-refresh proxy must stay at `src/proxy.ts`: Next resolves the convention relative to
+`src/app`, so a root-level file is silently ignored and tokens stop refreshing.
+
 Commands: `npm run dev`, `npm run lint`, `npm run typecheck`, `npm test` (Vitest, tests in
 `src/tests`), `npm run test:db` (Docker Postgres + RLS suite), `npm run build`.
 
@@ -38,6 +41,10 @@ Access rules:
   (`<organiser-uuid>/<file>`). Sign paths server-side with `resolveEventImages()` in
   `src/lib/services/storage.ts`; never call `getPublicUrl()` and never send a raw path to the browser.
   `can_read_event_image()` (`0010_private_event_images.sql`) decides who may read a file.
+- Stored text is capped in SQL as well as in Zod (`0012_content_limits.sql`), because a client can
+  call the RPCs directly. Timezones must be real IANA names; `normaliseTimezone()` guards rendering.
+- `next` parameters always go through `safeNextPath()`, which resolves against a throwaway base so
+  `//host`, `/\host` and control-character tricks cannot leave the site.
 
 Gotchas:
 - Event statuses are only `published` / `archived` / `removed` (no draft).
