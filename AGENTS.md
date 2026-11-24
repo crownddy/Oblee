@@ -15,7 +15,7 @@ Supabase (Postgres, Auth, Storage). The visual reference is `design/oblee-protot
 the running UI must keep that purple, mobile-first phone-frame design.
 
 Commands: `npm run dev`, `npm run lint`, `npm run typecheck`, `npm test` (Vitest, tests in
-`src/tests`), `npm run build`.
+`src/tests`), `npm run test:db` (Docker Postgres + RLS suite), `npm run build`.
 
 Preview mode: when `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` are unset the
 app serves the seeded catalogue in `src/lib/demo` and every write returns
@@ -24,6 +24,13 @@ app serves the seeded catalogue in `src/lib/demo` and every write returns
 Server-side authority: `getViewer()` in `src/lib/auth/session.ts` for identity, `requireUser` /
 `requireAdmin` in pages, and ownership + admin checks duplicated in SQL functions
 (`supabase/migrations/0005_functions.sql`) and RLS (`0006_rls.sql`).
+
+Access rules:
+- Private events use `public.can_view_event()` (`0008_private_events.sql`). Never add a policy that
+  reads `events` directly; call the helper so children stay consistent with their parent.
+- `canViewEvent()` in `src/lib/utils/events.ts` mirrors the SQL rule. Change both together.
+- Registration requires `date_of_birth`; `registerSchema` rejects under-18s and
+  `handle_new_user()` re-checks in the database (`0009_age_restriction.sql`). Never trust the form.
 
 Gotchas:
 - Event statuses are only `published` / `archived` / `removed` (no draft).

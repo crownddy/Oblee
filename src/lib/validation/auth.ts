@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MINIMUM_AGE, isAdult, isIsoDate } from "@/lib/utils/age";
 
 const emailField = z.string().trim().toLowerCase().min(1, "Enter your email address.").max(254, "That email is too long.").pipe(z.email("Enter a valid email address."));
 
@@ -13,6 +14,12 @@ export const registerSchema = z
     email: emailField,
     password: z.string().min(8, "Use a password of at least 8 characters.").max(200),
     confirmPassword: z.string(),
+    dateOfBirth: z
+      .string()
+      .trim()
+      .min(1, "Enter your date of birth.")
+      .refine(isIsoDate, "Enter a valid date of birth.")
+      .refine((value) => isAdult(value), `You must be at least ${MINIMUM_AGE} years old to use Oblee.`),
     role: z.enum(["attendee", "organiser"]),
   })
   .refine((value) => value.password === value.confirmPassword, {

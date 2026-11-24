@@ -121,6 +121,7 @@ export async function adminListPublishedForFeature(): Promise<Array<{ id: string
     .from("events")
     .select("id, title")
     .eq("status", "published")
+    .eq("visibility", "public")
     .order("starts_at", { ascending: true })
     .limit(100);
 

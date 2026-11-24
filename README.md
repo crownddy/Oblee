@@ -97,6 +97,8 @@ Migrations live in `supabase/migrations` and are idempotent where practical:
 | `0005_functions.sql` | `create_event`, `update_event`, `archive_event`, `remove_event`, `set_event_featured`, `report_event`, `resolve_event_report`, `set_user_role`, `admin_list_users`, `promote_to_organiser` — every one checks the caller |
 | `0006_rls.sql` | Row Level Security for every table |
 | `0007_storage.sql` | `event-images` bucket and per-user storage policies |
+| `0008_private_events.sql` | `event_access` grants, `can_view_event()` / `can_manage_event()`, private-aware policies for every related table, `grant_event_access()` / `revoke_event_access()` |
+| `0009_age_restriction.sql` | `profiles.date_of_birth`, an 18+ check constraint, and a sign-up trigger that refuses under-18 accounts |
 
 ### Roles and security
 
@@ -107,9 +109,49 @@ Migrations live in `supabase/migrations` and are idempotent where practical:
 * Featured placement, report triage and role changes are admin-only database operations. The UI
   hides the controls, and RLS/policies reject the write even if a client sends it.
 * Saved events, drafts and archived listings stay private to their owner.
+* Private events are readable only by the organiser, administrators and attendees with an explicit
+  row in `public.event_access`. The rule is implemented once, in `public.can_view_event()`, and
+  reused by the `events`, `event_ticket_tiers`, `event_tables`, `event_contacts`, `saved_events`
+  and `featured_events` policies, so a direct PostgREST query cannot reach the children of a
+  private event. See [Private events](#private-events).
+* Registration requires a date of birth and the database refuses under-18 accounts. The date of
+  birth is not granted to `anon` or `authenticated` at the column level, so clients cannot read
+  it back, and no identity document is ever requested or stored.
 * The Supabase server client (`src/lib/supabase/server.ts`) and the data services in
   `src/lib/services/*` are only imported from server components and server actions, so no
   privileged call ever runs in the browser.
+
+### Private events
+
+A published event with `visibility = 'private'` is not public. It is visible only to:
+
+1. its organiser,
+2. administrators,
+3. attendees holding a row in `public.event_access` for that event.
+
+Access is granted and revoked by the organiser or an administrator through
+`public.grant_event_access(event_id, email)` and `public.revoke_event_access(event_id, user_id)`.
+Both functions check `can_manage_event()` and are the only write path to `event_access`; the table
+has no `insert`/`update`/`delete` grants for clients. From SQL:
+
+```sql
+select public.grant_event_access('<event-uuid>', 'guest@example.com');
+select public.revoke_event_access('<event-uuid>', '<user-uuid>');
+```
+
+The grant only applies while the event is published. Archiving or removing the event hides it
+again, and saved-event rows can only be created for events the caller can already see.
+
+### Tests
+
+```bash
+npm test        # unit tests (validation, discovery, private access, age rules)
+npm run test:db # migrations + RLS tests against a throwaway Postgres container
+```
+
+`npm run test:db` starts `postgres:16-alpine` in Docker, applies every migration and runs
+`supabase/tests/rls_private_events.sql` as the `anon`, `authenticated` and organiser roles, so the
+assertions go through the same permission checks a real Supabase client would hit.
 
 ## Application structure
 
@@ -170,3 +212,10 @@ cookie on navigation; no other runtime configuration is required.
 * Admin bootstrap is a manual SQL update so that no privileged account can be self-created.
 * The demo catalogue is fixed sample content; it is replaced by live data as soon as Supabase
   credentials are configured.
+* Private-event grants are issued with `grant_event_access()` / `revoke_event_access()`; there is no
+  organiser screen for them yet in this release.
+* The `event-images` bucket is public, so a cover file can be fetched by anyone holding its URL.
+  Private event rows and their text data are protected; moving covers to signed URLs is deferred.
+* `npm run test:db` needs Docker. Without it, `npm test` still covers the shared application rules.
+* Existing accounts created before `0009_age_restriction.sql` keep a null `date_of_birth` until
+  they next edit their profile.

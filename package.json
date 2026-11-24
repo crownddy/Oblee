@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:db": "bash scripts/test-rls.sh",
     "test:watch": "vitest"
   },
   "dependencies": {

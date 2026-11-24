@@ -389,6 +389,7 @@ export function toSummary(event: EventDetail): EventSummary {
     colorFrom: event.colorFrom,
     colorTo: event.colorTo,
     status: event.status,
+    visibility: event.visibility,
     organiserId: event.organiserId,
     organiserName: event.organiserName,
     tags: [...event.tags],

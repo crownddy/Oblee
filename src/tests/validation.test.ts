@@ -147,6 +147,7 @@ describe("auth schemas", () => {
       email: "ada@oblee.app",
       password: "short",
       confirmPassword: "short",
+      dateOfBirth: "1996-02-29",
       role: "attendee",
     });
     expect(result.success).toBe(false);
@@ -158,6 +159,7 @@ describe("auth schemas", () => {
       email: "ada@oblee.app",
       password: "secret123",
       confirmPassword: "secret124",
+      dateOfBirth: "1996-02-29",
       role: "attendee",
     });
     expect(result.success).toBe(false);
@@ -170,6 +172,7 @@ describe("auth schemas", () => {
       email: "ada@oblee.app",
       password: "secret123",
       confirmPassword: "secret123",
+      dateOfBirth: "1996-02-29",
       role: "admin",
     });
     expect(result.success).toBe(false);

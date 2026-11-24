@@ -1,4 +1,4 @@
-import { DEFAULT_TIMEZONE, PAGE_SIZE, categoryLabel } from "@/lib/constants";
+import { DEFAULT_TIMEZONE, PAGE_SIZE, categoryLabel, type EventStatus } from "@/lib/constants";
 import type { EventSummary, EventDetail } from "@/lib/types/domain";
 import { dateKey, isToday, isWeekend } from "@/lib/utils/format";
 
@@ -134,14 +134,28 @@ export function ticketSummary(
   };
 }
 
+export interface EventAccessFacts {
+  status: EventStatus;
+  visibility: "public" | "private";
+  organiserId: string;
+  isAdminViewer?: boolean;
+}
+
+/**
+ * Mirrors public.can_view_event() in Supabase: the organiser, administrators and
+ * attendees holding an explicit grant may read a private event; everyone else may
+ * read a published public event.
+ */
 export function canViewEvent(
-  event: Pick<EventDetail, "status" | "organiserId" | "isAdminViewer">,
+  event: EventAccessFacts,
   viewerId: string | null,
   isAdmin = false,
+  hasAccessGrant = false,
 ): boolean {
-  if (event.status === "published") return true;
   if (viewerId && event.organiserId === viewerId) return true;
-  return isAdmin || event.isAdminViewer;
+  if (isAdmin || event.isAdminViewer) return true;
+  if (event.status !== "published") return false;
+  return event.visibility === "public" || hasAccessGrant;
 }
 
 export function canEditEvent(

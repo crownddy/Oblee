@@ -83,6 +83,20 @@ export function RegisterForm({ next }: { next: string }) {
         />
       </label>
       <label className="fl">
+        Date of birth
+        <input
+          className="in"
+          name="dateOfBirth"
+          type="date"
+          autoComplete="bday"
+          defaultValue={state.values?.dateOfBirth ?? ""}
+          required
+        />
+      </label>
+      <p className="note" style={{ marginTop: -4 }}>
+        Oblee is for people aged 18 and over. We store your date of birth only to check your age.
+      </p>
+      <label className="fl">
         Password
         <input className="in" name="password" type="password" autoComplete="new-password" minLength={8} required />
       </label>

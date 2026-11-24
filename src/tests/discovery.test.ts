@@ -29,6 +29,7 @@ function summary(overrides: Partial<EventSummary>): EventSummary {
     colorFrom: "#6a47f5",
     colorTo: "#c026d3",
     status: "published",
+    visibility: "public",
     organiserId: "organiser-1",
     organiserName: "Oblee Studio",
     tags: ["afrobeats"],
@@ -103,8 +104,18 @@ describe("discovery links", () => {
 });
 
 describe("event access rules", () => {
-  const published = { status: "published" as const, organiserId: "organiser-1", isAdminViewer: false };
-  const archived = { status: "archived" as const, organiserId: "organiser-1", isAdminViewer: false };
+  const published = {
+    status: "published" as const,
+    visibility: "public" as const,
+    organiserId: "organiser-1",
+    isAdminViewer: false,
+  };
+  const archived = {
+    status: "archived" as const,
+    visibility: "public" as const,
+    organiserId: "organiser-1",
+    isAdminViewer: false,
+  };
   const withFlags = { ...archived };
 
   it("lets anyone view published events", () => {

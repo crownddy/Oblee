@@ -34,6 +34,7 @@ export interface Database {
           full_name: string;
           role: UserRole;
           avatar_url: string | null;
+          date_of_birth: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -42,6 +43,7 @@ export interface Database {
           full_name?: string;
           role?: UserRole;
           avatar_url?: string | null;
+          date_of_birth?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -193,6 +195,22 @@ export interface Database {
         };
         Relationships: [];
       };
+      event_access: {
+        Row: {
+          event_id: string;
+          user_id: string;
+          granted_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          event_id: string;
+          user_id: string;
+          granted_by?: string | null;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
       saved_events: {
         Row: {
           user_id: string;
@@ -262,6 +280,8 @@ export interface Database {
         Args: { p_event_id: string; p_featured: boolean; p_rank?: number };
         Returns: undefined;
       };
+      grant_event_access: { Args: { p_event_id: string; p_email: string }; Returns: string };
+      revoke_event_access: { Args: { p_event_id: string; p_user_id: string }; Returns: undefined };
       report_event: {
         Args: { p_event_id: string; p_reason: string; p_details?: string };
         Returns: string;

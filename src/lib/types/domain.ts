@@ -44,6 +44,7 @@ export interface EventSummary {
   colorFrom: string;
   colorTo: string;
   status: EventStatus;
+  visibility: "public" | "private";
   organiserId: string;
   organiserName: string;
   tags: string[];
@@ -55,7 +56,6 @@ export interface EventDetail extends EventSummary {
   description: string;
   securityNote: string;
   identityNote: string;
-  visibility: "public" | "private";
   publishedAt: string | null;
   archivedAt: string | null;
   tickets: TicketTier[];

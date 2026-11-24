@@ -10,7 +10,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getViewer, viewerRole } from "@/lib/auth/session";
 import { demoEventSummaries, demoEvents, findDemoEvent } from "@/lib/demo/events";
-import { filterEvents, paginate, sortByStart } from "@/lib/utils/events";
+import { canViewEvent, filterEvents, paginate, sortByStart } from "@/lib/utils/events";
 import { resolveDateFilter } from "@/lib/utils/ranges";
 import { searchTerms } from "@/lib/utils/events";
 
@@ -87,6 +87,7 @@ function mapSummary(row: EventRow, savedIds: Set<string>): EventSummary {
     colorFrom: row.color_from,
     colorTo: row.color_to,
     status: row.status,
+    visibility: row.visibility,
     organiserId: row.organiser_id,
     organiserName: organiser?.full_name || "Oblee organiser",
     tags: row.tags ?? [],
@@ -120,9 +121,9 @@ export async function listPublishedEvents(options: ListEventsOptions = {}): Prom
 
   if (!isSupabaseConfigured) {
     const filtered = filterEvents(
-      demoEventSummaries().map((event) =>
-        viewer ? { ...event, isSaved: false } : event,
-      ),
+      demoEventSummaries()
+        .filter((event) => event.visibility === "public")
+        .map((event) => (viewer ? { ...event, isSaved: false } : event)),
       { q: options.query, cat: options.category, date: options.date },
     );
     const result = paginate(filtered, page, pageSize);
@@ -140,7 +141,8 @@ export async function listPublishedEvents(options: ListEventsOptions = {}): Prom
   let query = supabase
     .from("events")
     .select(EVENT_COLUMNS, { count: "exact" })
-    .eq("status", "published");
+    .eq("status", "published")
+    .eq("visibility", "public");
 
   if (range) {
     query = query.gte("starts_at", range.start).lt("starts_at", range.endExclusive);
@@ -206,7 +208,7 @@ export async function listFeaturedEvents(limit = FEATURED_LIMIT): Promise<EventS
   const rows = (data ?? []) as unknown as Array<{ events: EventRow }>;
   return rows
     .map((row) => row.events)
-    .filter((row) => row && row.status === "published")
+    .filter((row) => row && row.status === "published" && row.visibility === "public")
     .slice(0, limit)
     .map((row) => mapSummary(row, savedIds));
 }
@@ -236,6 +238,28 @@ export async function getEventForViewer(id: string): Promise<EventDetail | null>
   const saved = await savedIdsFor(viewer);
   const isAdminViewer = viewerRole(viewer) === "admin";
   const isOwner = Boolean(viewer && viewer.id === row.organiser_id);
+
+  let hasAccessGrant = false;
+  if (row.visibility === "private" && viewer && !isOwner && !isAdminViewer) {
+    const { data: grant } = await supabase
+      .from("event_access")
+      .select("event_id")
+      .eq("event_id", row.id)
+      .eq("user_id", viewer.id)
+      .maybeSingle();
+    hasAccessGrant = Boolean(grant);
+  }
+
+  // Defence in depth: Row Level Security already hides this row from unauthorised
+  // callers, and this keeps the page honest if a policy is ever loosened.
+  const accessFacts = {
+    status: row.status,
+    visibility: row.visibility,
+    organiserId: row.organiser_id,
+    isAdminViewer,
+  };
+  if (!canViewEvent(accessFacts, viewer?.id ?? null, isAdminViewer, hasAccessGrant)) return null;
+
   let isReportedByViewer = false;
 
   if (viewer && !isOwner) {

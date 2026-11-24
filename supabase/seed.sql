@@ -14,7 +14,7 @@ values
     'authenticated', 'authenticated', 'organiser@oblee.test',
     crypt('oblee-demo-password', gen_salt('bf')), now(),
     '{"provider":"email","providers":["email"]}',
-    '{"full_name":"Ada Oblee","role":"organiser"}',
+    '{"full_name":"Ada Oblee","role":"organiser","date_of_birth":"1990-04-12"}',
     now(), now()
   ),
   (
@@ -23,7 +23,7 @@ values
     'authenticated', 'authenticated', 'admin@oblee.test',
     crypt('oblee-demo-password', gen_salt('bf')), now(),
     '{"provider":"email","providers":["email"]}',
-    '{"full_name":"Oblee Admin","role":"attendee"}',
+    '{"full_name":"Oblee Admin","role":"attendee","date_of_birth":"1988-09-30"}',
     now(), now()
   ),
   (
@@ -32,7 +32,7 @@ values
     'authenticated', 'authenticated', 'attendee@oblee.test',
     crypt('oblee-demo-password', gen_salt('bf')), now(),
     '{"provider":"email","providers":["email"]}',
-    '{"full_name":"Tunde Guest","role":"attendee"}',
+    '{"full_name":"Tunde Guest","role":"attendee","date_of_birth":"1996-01-22"}',
     now(), now()
   )
 on conflict (id) do nothing;

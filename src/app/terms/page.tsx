@@ -42,6 +42,16 @@ export default function TermsPage() {
             <li>
               <b>Accounts.</b> You are responsible for keeping your login details safe. Do not share your account.
             </li>
+            <li>
+              <b>Age requirement.</b> Oblee is only for people aged 18 and over. You must give your real date of birth when
+              you register; we check it on our servers and refuse accounts for anyone under 18. If we discover an account
+              belongs to someone under 18, we will close it. Do not send us identity documents: we do not ask for them and
+              we do not store them.
+            </li>
+            <li>
+              <b>Private events.</b> Private events are visible only to the organiser, Oblee administrators and attendees the
+              organiser has approved. Do not share private event details or access links with people who were not invited.
+            </li>
           </ol>
           <p className="note">
             Questions about these terms? Read the{" "}

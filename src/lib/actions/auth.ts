@@ -15,7 +15,7 @@ import { getOrigin, safeNextPath } from "@/lib/utils/request";
 export interface AuthActionState {
   status: "idle" | "error" | "notice";
   message?: string;
-  values?: { fullName?: string; email?: string; role?: string; next?: string };
+  values?: { fullName?: string; email?: string; role?: string; dateOfBirth?: string; next?: string };
 }
 
 
@@ -26,6 +26,7 @@ function readForm(formData: FormData) {
     password: String(formData.get("password") ?? ""),
     confirmPassword: String(formData.get("confirmPassword") ?? ""),
     role: String(formData.get("role") ?? "attendee"),
+    dateOfBirth: String(formData.get("dateOfBirth") ?? ""),
     next: String(formData.get("next") ?? ""),
   };
 }
@@ -74,14 +75,14 @@ export async function registerAction(
     return {
       status: "error",
       message: parsed.error.issues[0]?.message ?? "Check your details and try again.",
-      values: { fullName: raw.fullName, email: raw.email, role: raw.role, next: raw.next },
+      values: { fullName: raw.fullName, email: raw.email, role: raw.role, dateOfBirth: raw.dateOfBirth, next: raw.next },
     };
   }
   if (!isSupabaseConfigured) {
     return {
       status: "error",
       message: CONFIG_REQUIRED_MESSAGE,
-      values: { fullName: raw.fullName, email: raw.email, role: raw.role },
+      values: { fullName: raw.fullName, email: raw.email, role: raw.role, dateOfBirth: raw.dateOfBirth },
     };
   }
 
@@ -91,7 +92,11 @@ export async function registerAction(
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
-      data: { full_name: parsed.data.fullName, role: parsed.data.role },
+      data: {
+        full_name: parsed.data.fullName,
+        role: parsed.data.role,
+        date_of_birth: parsed.data.dateOfBirth,
+      },
       emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(
         safeNextPath(raw.next, "/profile"),
       )}`,
@@ -109,7 +114,7 @@ export async function registerAction(
     return {
       status: "error",
       message: "That email already has an account. Try logging in.",
-      values: { fullName: raw.fullName, email: raw.email, role: raw.role },
+      values: { fullName: raw.fullName, email: raw.email, role: raw.role, dateOfBirth: raw.dateOfBirth },
     };
   }
 
