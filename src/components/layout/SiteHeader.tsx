@@ -1,6 +1,4 @@
-"use client";
-
-import { useUI } from "@/components/ui/UIProvider";
+import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
 import { initials } from "@/lib/utils/format";
 
@@ -11,8 +9,6 @@ export function SiteHeader({
   signedIn: boolean;
   displayName?: string | null;
 }) {
-  const { openAppearance } = useUI();
-
   return (
     <div className="hdr fx">
       <div className="logo">
@@ -24,16 +20,14 @@ export function SiteHeader({
           <small>find the party you love</small>
         </div>
       </div>
-      <button
+      <Link
         className="av"
         id="av"
-        type="button"
-        aria-haspopup="dialog"
-        aria-label={signedIn ? `Profile and appearance, signed in as ${displayName ?? "you"}` : "Appearance, not signed in"}
-        onClick={openAppearance}
+        href={signedIn ? "/profile" : "/login"}
+        aria-label={signedIn ? `Your profile, signed in as ${displayName ?? "you"}` : "Log in or register"}
       >
         {signedIn && displayName ? initials(displayName) : <Icon name="user" size={18} />}
-      </button>
+      </Link>
     </div>
   );
 }

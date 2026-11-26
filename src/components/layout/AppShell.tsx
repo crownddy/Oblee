@@ -1,12 +1,11 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { AppearanceSheet } from "@/components/layout/AppearanceSheet";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { Splash } from "@/components/layout/Splash";
 import { UIProvider } from "@/components/ui/UIProvider";
 
-const NAV_ROUTES = new Set(["/", "/explore", "/saved", "/profile"]);
+const NAV_ROUTES = new Set(["/", "/explore", "/saved", "/profile", "/settings"]);
 
 const FLAKES = Array.from({ length: 40 }, (_, index) => {
   const seed = (value: number) => {
@@ -31,7 +30,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <main className="app" id="app">
       <Splash />
-      <UIProvider renderAppearance={(open, close) => <AppearanceSheet open={open} onClose={close} />}>
+      <UIProvider>
         {children}
         {showNav ? <BottomNav /> : null}
       </UIProvider>

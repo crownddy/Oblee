@@ -4,9 +4,6 @@ import { createContext, useCallback, useContext, useMemo, useState } from "react
 
 interface UIContextValue {
   toast: (message: string) => void;
-  openAppearance: () => void;
-  closeAppearance: () => void;
-  appearanceOpen: boolean;
   message: string | null;
 }
 
@@ -20,15 +17,8 @@ export function useUI(): UIContextValue {
   return value;
 }
 
-export function UIProvider({
-  children,
-  renderAppearance,
-}: {
-  children: React.ReactNode;
-  renderAppearance: (open: boolean, close: () => void) => React.ReactNode;
-}) {
+export function UIProvider({ children }: { children: React.ReactNode }) {
   const [message, setMessage] = useState<string | null>(null);
-  const [appearanceOpen, setAppearanceOpen] = useState(false);
   const [timer, setTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   const toast = useCallback(
@@ -40,21 +30,11 @@ export function UIProvider({
     [timer],
   );
 
-  const value = useMemo<UIContextValue>(
-    () => ({
-      toast,
-      openAppearance: () => setAppearanceOpen(true),
-      closeAppearance: () => setAppearanceOpen(false),
-      appearanceOpen,
-      message,
-    }),
-    [toast, appearanceOpen, message],
-  );
+  const value = useMemo<UIContextValue>(() => ({ toast, message }), [toast, message]);
 
   return (
     <UIContext.Provider value={value}>
       {children}
-      {renderAppearance(appearanceOpen, value.closeAppearance)}
       <div className={`toast${message ? " on" : ""}`} role="status" aria-live="polite">
         {message}
       </div>
