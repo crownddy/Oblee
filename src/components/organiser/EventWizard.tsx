@@ -242,7 +242,7 @@ export function EventWizard({
       if (!draft.date) return "Add a date to continue.";
       if (draft.date < today) return "Pick today or a future date.";
     }
-    if (target === 3 || target === 4 || target === "pv" || target === "tc" || target === "ok") {
+    if (target === 4 || target === "pv" || target === "tc" || target === "ok") {
       if (draft.venue.trim().length < 3) return "Add a venue to continue.";
       if (draft.description.trim().length < 10) return "Add a description of at least 10 characters.";
     }
