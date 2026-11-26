@@ -32,6 +32,7 @@ import {
 } from "@/lib/constants";
 import { createEventAction, updateEventAction } from "@/lib/actions/events";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { goBackToOrigin } from "@/lib/navigation/history";
 import { CONFIG_REQUIRED_MESSAGE, isSupabaseConfigured } from "@/lib/supabase/config";
 import type { EventContact } from "@/lib/types/domain";
 import type { EventInput } from "@/lib/validation/event";
@@ -281,7 +282,7 @@ export function EventWizard({
 
   const goBack = () => {
     if (step === 1) {
-      router.push("/");
+      goBackToOrigin(router, "/");
       return;
     }
     if (step === "ok") {

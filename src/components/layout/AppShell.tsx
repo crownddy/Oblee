@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { NavigationMemory } from "@/components/layout/NavigationMemory";
 import { Splash } from "@/components/layout/Splash";
 import { UIProvider } from "@/components/ui/UIProvider";
 
@@ -30,6 +31,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <main className="app" id="app">
       <Splash />
+      <NavigationMemory />
       <UIProvider>
         {children}
         {showNav ? <BottomNav /> : null}

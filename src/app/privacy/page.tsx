@@ -6,7 +6,7 @@ export const metadata = { title: "Privacy Policy" };
 export default function PrivacyPage() {
   return (
     <div className="page">
-      <PageHeader title="Privacy Policy" backHref="/" variant="close" />
+      <PageHeader title="Privacy Policy" backHref="/settings" variant="close" />
       <div className="body">
         <div className="pad" style={{ paddingBottom: 32 }}>
           <p className="muted" style={{ fontSize: 12 }}>
