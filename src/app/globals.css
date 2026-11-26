@@ -452,6 +452,15 @@ select.in {
   text-align: left;
 }
 
+/* Stretches the card's link over the whole row. The z-index has to clear the
+   card children, which sit at 2, or taps on the title would miss the link. */
+.ev-link {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: 18px;
+}
+
 .db {
   width: 50px;
   flex: none;
@@ -547,7 +556,7 @@ select.in {
   color: #555;
   display: grid;
   place-items: center;
-  z-index: 3;
+  z-index: 4;
 }
 
 .bm.on {
@@ -1515,7 +1524,7 @@ button.chip {
   border: 2px solid #1a0f3d;
   box-shadow: 2px 3px 0 #1a0f3d;
 }
-:root[data-mode="vibe"] .ev .pc:active {
+:root[data-mode="vibe"] .ev:active .pc {
   transform: translate(2px, 3px);
   box-shadow: 1px 1px 0 #1a0f3d;
 }
