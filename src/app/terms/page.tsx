@@ -6,7 +6,7 @@ export const metadata = { title: "Terms and Conditions" };
 export default function TermsPage() {
   return (
     <div className="page">
-      <PageHeader title="Terms & Conditions" backHref="/" variant="close" />
+      <PageHeader title="Terms & Conditions" backHref="/settings" variant="close" />
       <div className="body">
         <div className="pad" style={{ paddingBottom: 32 }}>
           <p className="muted" style={{ fontSize: 12 }}>

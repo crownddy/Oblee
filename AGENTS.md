@@ -45,6 +45,11 @@ Access rules:
   call the RPCs directly. Timezones must be real IANA names; `normaliseTimezone()` guards rendering.
 - `next` parameters always go through `safeNextPath()`, which resolves against a throwaway base so
   `//host`, `/\host` and control-character tricks cannot leave the site.
+- Back and close controls go through `canGoBack()` / `goBackToOrigin()` in
+  `src/lib/navigation/history.ts` so the screen a page was opened from comes back; the route's own
+  `backHref` / `fallback` is only used for a direct entry (shared link, new tab).
+  `NavigationMemory` in `AppShell` keeps that trail and each screen's `.body` scroll offset, because
+  pages scroll inside `.body` where the browser's own scroll restoration cannot reach.
 
 Gotchas:
 - Event statuses are only `published` / `archived` / `removed` (no draft).
