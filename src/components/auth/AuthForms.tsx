@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import {
   forgotPasswordAction,
@@ -61,7 +61,9 @@ export function LoginForm({ next }: { next: string }) {
 
 export function RegisterForm({ next }: { next: string }) {
   const [state, action, pending] = useActionState(registerAction, IDLE);
-  const role = state.values?.role === "organiser" ? "organiser" : "attendee";
+  const [role, setRole] = useState<"attendee" | "organiser">(
+    state.values?.role === "organiser" ? "organiser" : "attendee",
+  );
 
   return (
     <form action={action} noValidate>
@@ -106,12 +108,26 @@ export function RegisterForm({ next }: { next: string }) {
       </label>
       <div className="fl">I want to</div>
       <div className="two">
-        <label className="rad" style={role === "attendee" ? { borderColor: "var(--pri)", background: "var(--bg2)", color: "var(--pri)" } : undefined}>
-          <input type="radio" name="role" value="attendee" defaultChecked={role === "attendee"} className="rad-input" />
+        <label className={role === "attendee" ? "rad on" : "rad"}>
+          <input
+            type="radio"
+            name="role"
+            value="attendee"
+            className="rad-input"
+            checked={role === "attendee"}
+            onChange={() => setRole("attendee")}
+          />
           Attend events
         </label>
-        <label className="rad" style={role === "organiser" ? { borderColor: "var(--pri)", background: "var(--bg2)", color: "var(--pri)" } : undefined}>
-          <input type="radio" name="role" value="organiser" defaultChecked={role === "organiser"} className="rad-input" />
+        <label className={role === "organiser" ? "rad on" : "rad"}>
+          <input
+            type="radio"
+            name="role"
+            value="organiser"
+            className="rad-input"
+            checked={role === "organiser"}
+            onChange={() => setRole("organiser")}
+          />
           Host events
         </label>
       </div>
