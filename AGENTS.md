@@ -45,6 +45,11 @@ Access rules:
   `dismissible={false}` (use that while a request is in flight).
 - Signup and password reset share `usePasswordPair()` (`src/components/auth/usePasswordPair.ts`).
   Add password rules there or in `src/lib/validation/password.ts`, never in one form alone.
+- The settings Appearance card is a disclosure (`AppearanceSection`): collapsed by default, a real
+  `<button>` with `aria-expanded`/`aria-controls`, wrapping the existing `AppearancePicker` and
+  `THEMES`. Never add a second theme selector or theme list.
+- Log out lives only at the bottom of `/settings`, as a full-width card button (`<form action={logoutAction}>`),
+  and only for signed-in viewers. The profile header no longer carries a logout control.
 - Bottom navigation labels are single words (`Home`, `Explore`, `Saved`, `Settings`) and the
   settings tab uses the `gear` icon. `/profile` stays reachable from the header avatar; the bottom
   bar is not a profile tab.

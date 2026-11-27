@@ -1,8 +1,9 @@
 import Link from "next/link";
 import pkg from "../../../package.json";
 import { SiteHeader } from "@/components/layout/SiteHeader";
-import { AppearancePicker } from "@/components/settings/AppearancePicker";
+import { AppearanceSection } from "@/components/settings/AppearanceSection";
 import { Icon } from "@/components/ui/Icon";
+import { logoutAction } from "@/lib/actions/auth";
 import { getViewer } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
@@ -20,13 +21,7 @@ export default async function SettingsPage() {
             <h3>Settings</h3>
           </div>
 
-          <div className="card" style={{ marginTop: 0 }}>
-            <b style={{ fontSize: 14 }}>Appearance</b>
-            <p className="muted" style={{ fontSize: 12.5, margin: "4px 0 0" }}>
-              Choose how Oblee looks. This device remembers your pick.
-            </p>
-            <AppearancePicker />
-          </div>
+          <AppearanceSection />
 
           <div className="sec">
             <h3>Notifications</h3>
@@ -81,6 +76,17 @@ export default async function SettingsPage() {
             <b style={{ fontSize: 14 }}>Oblee for web</b>
             <span className="badge">v{pkg.version}</span>
           </div>
+
+          {viewer ? (
+            <div className="logoutwrap">
+              <form action={logoutAction}>
+                <button type="submit" className="logout">
+                  <Icon name="logout" size={20} />
+                  Log out
+                </button>
+              </form>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

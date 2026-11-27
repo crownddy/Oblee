@@ -4,7 +4,6 @@ import { EventCard } from "@/components/events/EventCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon } from "@/components/ui/Icon";
 import { PromoteButton } from "@/components/profile/PromoteButton";
-import { logoutAction } from "@/lib/actions/auth";
 import { requireUser } from "@/lib/auth/session";
 import { listEventsForOrganiser } from "@/lib/services/events";
 import { getMyAgeStatus, needsAgeVerification } from "@/lib/services/age";
@@ -53,11 +52,6 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
                 {profile?.role ?? "attendee"}
               </span>
             </div>
-            <form action={logoutAction}>
-              <button type="submit" className="lo">
-                Log out
-              </button>
-            </form>
           </div>
 
           {profile?.role === "admin" ? (
