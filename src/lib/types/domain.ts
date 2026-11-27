@@ -48,8 +48,13 @@ export interface EventSummary {
   status: EventStatus;
   visibility: "public" | "private";
   organiserId: string;
-  organiserName: string;
+  /** Public profile name of the organiser, or null when the profile is missing. */
+  organiserName: string | null;
   tags: string[];
+  /** Cheapest ticket price in naira, or null when the event is free or has no pricing yet. */
+  priceFrom: number | null;
+  /** Ticket tiers the cheapest price was drawn from; 0 when the event has no pricing. */
+  priceTierCount: number;
   /** True when the current viewer has saved the event. */
   isSaved: boolean;
 }

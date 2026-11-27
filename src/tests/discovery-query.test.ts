@@ -39,6 +39,8 @@ function summary(overrides: Partial<EventSummary> = {}): EventSummary {
     organiserId: "organiser-1",
     organiserName: "Oblee Studio",
     tags: ["afrobeats"],
+    priceFrom: null,
+    priceTierCount: 0,
     isSaved: false,
     ...overrides,
   };

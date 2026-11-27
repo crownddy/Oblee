@@ -175,7 +175,8 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
           <p style={{ color: "var(--mute)", marginTop: 6, fontSize: 13.5 }}>{event.description}</p>
 
           <p className="muted" style={{ fontSize: 11.5, marginTop: 18 }}>
-            Hosted by {event.organiserName} · {event.visibility === "private" ? "Private event" : "Public event"}
+            Hosted by {event.organiserName ?? "an Oblee organiser"} ·{" "}
+            {event.visibility === "private" ? "Private event" : "Public event"}
           </p>
 
           {event.canReport ? <ReportButton eventId={event.id} reported={event.isReportedByViewer} /> : null}

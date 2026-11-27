@@ -45,6 +45,13 @@ Access rules:
   `dismissible={false}` (use that while a request is in flight).
 - Signup and password reset share `usePasswordPair()` (`src/components/auth/usePasswordPair.ts`).
   Add password rules there or in `src/lib/validation/password.ts`, never in one form alone.
+- Event cards read three extra facts from the database: `is_free` plus the cheapest
+  `event_ticket_tiers.price` (price badge), `profiles.full_name` (organiser, already column-granted
+  to anon; never email/phone), and `events.tags` (first two, then "+N"). `pricingFrom()` in
+  `src/lib/utils/events.ts` is the single source of truth and is shared by the Supabase and demo
+  paths, so a paid event with no tiers shows no badge rather than "FREE".
+- Cards show no status badge: `event_status` only has published/archived/removed, discovery never
+  returns the latter two, and the organiser archive tab labels archived events itself.
 - Discovery filtering is built by `buildDiscoveryQuery()` in `src/lib/utils/discovery.ts` and is
   pure: it returns the date range (or an upcoming-only lower bound), the category, escaped search
   terms, PostgREST `or()` groups and the page window. Both `listPublishedEvents` (Supabase) and the

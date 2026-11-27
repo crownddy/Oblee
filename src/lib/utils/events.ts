@@ -1,6 +1,6 @@
 import { DEFAULT_TIMEZONE, PAGE_SIZE, categoryLabel, type EventStatus } from "@/lib/constants";
 import type { EventSummary, EventDetail } from "@/lib/types/domain";
-import { dateKey, isToday, isWeekend } from "@/lib/utils/format";
+import { dateKey, isToday, isWeekend, money } from "@/lib/utils/format";
 
 export interface DiscoverParams {
   q?: string;
@@ -120,6 +120,34 @@ export function coverStyle(
 
 export function isGradientCover(event: Pick<EventSummary, "heroImageUrl">): boolean {
   return !event.heroImageUrl;
+}
+
+/**
+ * Price facts for a card. Free events never carry a price, paid events use their
+ * cheapest tier, and an event with no usable tier stays unknown rather than free.
+ */
+export function pricingFrom(
+  isFree: boolean,
+  prices: Array<number | string>,
+): { priceFrom: number | null; priceTierCount: number } {
+  const valid = prices
+    .map((price) => Number(price))
+    .filter((price) => Number.isFinite(price) && price > 0);
+  return {
+    priceFrom: isFree || valid.length === 0 ? null : Math.min(...valid),
+    priceTierCount: valid.length,
+  };
+}
+
+/**
+ * Card price label: FREE only when the organiser marked the event free, the
+ * cheapest tier for paid events, and nothing at all when the price is unknown.
+ */
+export function priceLabel(event: Pick<EventSummary, "isFree" | "priceFrom" | "priceTierCount">): string | null {
+  if (event.isFree) return "FREE";
+  if (event.priceFrom == null || !Number.isFinite(event.priceFrom)) return null;
+  const amount = money(Math.round(event.priceFrom));
+  return event.priceTierCount > 1 ? `From ${amount}` : amount;
 }
 
 export function ticketSummary(
