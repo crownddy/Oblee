@@ -2261,6 +2261,86 @@ button.chip {
   color: var(--mute);
 }
 
+/* ---------- alerts ---------- */
+.alert {
+  --tone: var(--mute);
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) 34px;
+  align-items: start;
+  gap: 10px;
+  margin: 14px 0 4px;
+  padding: 12px 8px 12px 12px;
+  border: 1px solid color-mix(in srgb, var(--tone) 32%, var(--line));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--tone) 8%, var(--bg));
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.alert[data-tone="error"] {
+  --tone: #d93a4a;
+}
+
+.alert[data-tone="success"] {
+  --tone: #12805c;
+}
+
+.alert[data-tone="warning"] {
+  --tone: #b26a00;
+}
+
+.alert[data-tone="info"] {
+  --tone: #2f6fed;
+}
+
+.alert-ic {
+  display: grid;
+  place-items: center;
+  padding-top: 1px;
+  color: var(--tone);
+}
+
+.alert-body {
+  display: block;
+  min-width: 0;
+}
+
+.alert-title {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.alert-text {
+  display: block;
+}
+
+.alert-x {
+  width: 34px;
+  height: 34px;
+  margin: -6px -2px 0 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--mute);
+  cursor: pointer;
+}
+
+.alert-x:hover {
+  background: color-mix(in srgb, var(--tone) 14%, transparent);
+  color: var(--ink);
+}
+
+.alert-x:focus-visible {
+  outline: 2px solid var(--tone);
+  outline-offset: 1px;
+}
+
 .archn {
   background: color-mix(in srgb, #f59e0b 18%, var(--bg));
   color: var(--ink);

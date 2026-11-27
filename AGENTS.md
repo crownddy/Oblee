@@ -39,6 +39,11 @@ Access rules:
   `PasswordField` all read those constants, so change the policy there and nowhere else. Client
   checks are advisory; Supabase Auth stays the authority, and `describeAuthError()` in
   `src/lib/auth/errors.ts` turns its failures into safe, actionable copy without echoing internals.
+- Action results surface through `Alert` (`src/components/ui/Alert.tsx`): errors are
+  `role="alert"` / assertive, the other tones are `role="status"` / polite, every alert carries a
+  labelled close button, and nothing auto-dismisses. `useStatusAlert()` / `useAuthAlert()` own the
+  dismissal state; `routeAuthMessage()` (`src/lib/auth/fieldErrors.ts`) keeps password complaints on
+  the field so one failure is never reported twice.
 - Accounts without a stored date of birth cannot publish, edit or restore events.
   `enforce_verified_organiser()` (`0011_age_verification.sql`) is the authority; the UI gate is
   `requireVerifiedAdult()` and the one-field screen is `/verify-age` (`set_my_date_of_birth`).

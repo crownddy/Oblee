@@ -11,23 +11,17 @@ import {
   type AuthActionState,
 } from "@/lib/actions/auth";
 import { Icon } from "@/components/ui/Icon";
+import { Alert } from "@/components/ui/Alert";
 import { PasswordField } from "@/components/auth/PasswordField";
+import { useAuthAlert } from "@/components/auth/useAuthAlert";
 import { describePasswordProblem, passwordMeetsPolicy } from "@/lib/validation/password";
 
 const IDLE: AuthActionState = { status: "idle" };
 
-function ErrorLine({ state }: { state: AuthActionState }) {
-  if (state.status === "idle") return <p className="err" role="alert" />;
-  return (
-    <p className="err" role="alert" style={state.status === "notice" ? { color: "var(--pri)" } : undefined}>
-      {state.message}
-    </p>
-  );
-}
-
 export function LoginForm({ next }: { next: string }) {
   const [state, action, pending] = useActionState(loginAction, IDLE);
   const [password, setPassword] = useState("");
+  const alerts = useAuthAlert(state, { routeFields: false });
 
   return (
     <form action={action} noValidate>
@@ -51,7 +45,11 @@ export function LoginForm({ next }: { next: string }) {
         value={password}
         onChange={setPassword}
       />
-      <ErrorLine state={state} />
+{alerts.alert ? (
+        <Alert tone={alerts.alert.tone} onDismiss={alerts.dismiss}>
+          {alerts.alert.message}
+        </Alert>
+      ) : null}
       <button className="btn full" type="submit" disabled={pending}>
         {pending ? <span className="spin2" /> : null}
         {pending ? "Logging in…" : "Log in"}
@@ -75,11 +73,15 @@ export function RegisterForm({ next }: { next: string }) {
   const [attempted, setAttempted] = useState(false);
   const passwordRef = useRef<HTMLInputElement>(null);
   const confirmRef = useRef<HTMLInputElement>(null);
+  const alerts = useAuthAlert(state);
 
   const policyOk = passwordMeetsPolicy(password);
   const passwordsMatch = confirmPassword === password;
-  const passwordError = attempted && !policyOk ? describePasswordProblem(password) : null;
-  const confirmError = (attempted || confirmPassword.length > 0) && !passwordsMatch ? "The passwords do not match." : null;
+  const passwordError =
+    (attempted && !policyOk ? describePasswordProblem(password) : null) ?? alerts.passwordError;
+  const confirmError =
+    ((attempted || confirmPassword.length > 0) && !passwordsMatch ? "The passwords do not match." : null) ??
+    alerts.confirmPasswordError;
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     if (policyOk && passwordsMatch) return;
@@ -166,7 +168,11 @@ export function RegisterForm({ next }: { next: string }) {
           Host events
         </label>
       </div>
-      <ErrorLine state={state} />
+{alerts.alert ? (
+        <Alert tone={alerts.alert.tone} onDismiss={alerts.dismiss}>
+          {alerts.alert.message}
+        </Alert>
+      ) : null}
       <button className="btn full" type="submit" disabled={pending}>
         {pending ? <span className="spin2" /> : null}
         {pending ? "Creating account…" : "Create account"}
@@ -178,6 +184,7 @@ export function RegisterForm({ next }: { next: string }) {
 
 export function ForgotPasswordForm() {
   const [state, action, pending] = useActionState(forgotPasswordAction, IDLE);
+  const alerts = useAuthAlert(state, { noticeTone: "info", routeFields: false });
 
   return (
     <form action={action} noValidate>
@@ -193,7 +200,11 @@ export function ForgotPasswordForm() {
           required
         />
       </label>
-      <ErrorLine state={state} />
+{alerts.alert ? (
+        <Alert tone={alerts.alert.tone} onDismiss={alerts.dismiss}>
+          {alerts.alert.message}
+        </Alert>
+      ) : null}
       <button className="btn full" type="submit" disabled={pending}>
         {pending ? <span className="spin2" /> : null}
         {pending ? "Sending…" : "Send reset link"}
@@ -210,11 +221,15 @@ export function ResetPasswordForm() {
   const [attempted, setAttempted] = useState(false);
   const passwordRef = useRef<HTMLInputElement>(null);
   const confirmRef = useRef<HTMLInputElement>(null);
+  const alerts = useAuthAlert(state);
 
   const policyOk = passwordMeetsPolicy(password);
   const passwordsMatch = confirmPassword === password;
-  const passwordError = attempted && !policyOk ? describePasswordProblem(password) : null;
-  const confirmError = (attempted || confirmPassword.length > 0) && !passwordsMatch ? "The passwords do not match." : null;
+  const passwordError =
+    (attempted && !policyOk ? describePasswordProblem(password) : null) ?? alerts.passwordError;
+  const confirmError =
+    ((attempted || confirmPassword.length > 0) && !passwordsMatch ? "The passwords do not match." : null) ??
+    alerts.confirmPasswordError;
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     if (policyOk && passwordsMatch) return;
@@ -245,7 +260,11 @@ export function ResetPasswordForm() {
         error={confirmError}
         inputRef={confirmRef}
       />
-      <ErrorLine state={state} />
+{alerts.alert ? (
+        <Alert tone={alerts.alert.tone} onDismiss={alerts.dismiss}>
+          {alerts.alert.message}
+        </Alert>
+      ) : null}
       <button className="btn full" type="submit" disabled={pending}>
         {pending ? <span className="spin2" /> : null}
         {pending ? "Saving…" : "Save new password"}
@@ -256,6 +275,7 @@ export function ResetPasswordForm() {
 
 export function ResendVerificationForm({ email }: { email: string }) {
   const [state, action, pending] = useActionState(resendVerificationAction, IDLE);
+  const alerts = useAuthAlert(state, { routeFields: false });
 
   return (
     <form action={action} noValidate>
@@ -271,7 +291,11 @@ export function ResendVerificationForm({ email }: { email: string }) {
           required
         />
       </label>
-      <ErrorLine state={state} />
+{alerts.alert ? (
+        <Alert tone={alerts.alert.tone} onDismiss={alerts.dismiss}>
+          {alerts.alert.message}
+        </Alert>
+      ) : null}
       <button className="btn full" type="submit" disabled={pending}>
         {pending ? <span className="spin2" /> : <Icon name="mail" size={17} />}
         {pending ? "Sending…" : "Resend verification email"}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ConfigNotice } from "@/components/ui/ConfigNotice";
+import { PageNotice } from "@/components/ui/PageNotice";
 import { LoginForm } from "@/components/auth/AuthForms";
 import { getViewer } from "@/lib/auth/session";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -30,14 +31,10 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <Link href={registerHref}>Register</Link>
         </div>
         {firstParam(params.reset) === "1" ? (
-          <p className="note" style={{ marginTop: 12 }}>
-            Password updated. Log in with your new password.
-          </p>
+          <PageNotice tone="success">Password updated. Log in with your new password.</PageNotice>
         ) : null}
         {firstParam(params.error) === "link" ? (
-          <p className="archn" style={{ marginTop: 12 }}>
-            That link is no longer valid. Request a new one and try again.
-          </p>
+          <PageNotice tone="warning">That link is no longer valid. Request a new one and try again.</PageNotice>
         ) : null}
         <div style={{ marginTop: 18 }}>
           {isSupabaseConfigured ? null : (
