@@ -6,8 +6,8 @@ import { FeaturedCarousel } from "@/components/events/FeaturedCarousel";
 import { Pager } from "@/components/events/Pager";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getViewer } from "@/lib/auth/session";
-import { isEventCategory } from "@/lib/constants";
 import { listFeaturedEvents, listPublishedEvents } from "@/lib/services/events";
+import { normaliseCategoryParam, normaliseDateParam } from "@/lib/utils/discovery";
 
 export type SearchParamsRecord = Record<string, string | string[] | undefined>;
 
@@ -24,10 +24,8 @@ export async function DiscoverScreen({
   searchParams: SearchParamsRecord;
 }) {
   const query = first(searchParams.q).slice(0, 80);
-  const rawCategory = first(searchParams.cat);
-  const category = rawCategory === "Today" || rawCategory === "Weekend" || isEventCategory(rawCategory) ? rawCategory : "";
-  const rawDate = first(searchParams.date);
-  const date = /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? rawDate : "";
+  const category = normaliseCategoryParam(first(searchParams.cat));
+  const date = normaliseDateParam(first(searchParams.date));
   const page = Math.max(1, Number.parseInt(first(searchParams.page), 10) || 1);
   const path = mode === "home" ? "/" : "/explore";
 

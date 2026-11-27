@@ -1,4 +1,4 @@
-import { PAGE_SIZE, DEFAULT_TIMEZONE, FEATURED_LIMIT } from "@/lib/constants";
+import { FEATURED_LIMIT } from "@/lib/constants";
 import type {
   EventDetail,
   EventListResult,
@@ -11,9 +11,13 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getViewer, viewerRole } from "@/lib/auth/session";
 import { demoEventSummaries, demoEvents, findDemoEvent } from "@/lib/demo/events";
 import { canViewEvent, filterEvents, paginate, sortByStart } from "@/lib/utils/events";
-import { resolveDateFilter } from "@/lib/utils/ranges";
+import {
+  buildDiscoveryQuery,
+  normaliseCategoryParam,
+  normaliseDateParam,
+  resolvePage,
+} from "@/lib/utils/discovery";
 import { normaliseTimezone } from "@/lib/utils/format";
-import { searchTerms } from "@/lib/utils/events";
 import { eventImagePath } from "@/lib/utils/images";
 import { resolveEventImages } from "@/lib/services/storage";
 
@@ -115,10 +119,6 @@ async function savedIdsFor(viewer: Viewer | null): Promise<Set<string>> {
   return new Set((data ?? []).map((row) => row.event_id));
 }
 
-function escapeTerm(term: string): string {
-  return term.replace(/[%,(){}*"\\]/g, " ").trim();
-}
-
 export interface ListEventsOptions {
   query?: string;
   category?: string;
@@ -128,18 +128,27 @@ export interface ListEventsOptions {
 }
 
 export async function listPublishedEvents(options: ListEventsOptions = {}): Promise<EventListResult> {
-  const page = Math.max(1, Math.trunc(options.page ?? 1));
-  const pageSize = options.pageSize ?? PAGE_SIZE;
   const viewer = await getViewer();
+  const discovery = buildDiscoveryQuery({
+    query: options.query,
+    category: options.category,
+    date: options.date,
+    page: options.page,
+    pageSize: options.pageSize,
+  });
 
   if (!isSupabaseConfigured) {
     const filtered = filterEvents(
       demoEventSummaries()
         .filter((event) => event.visibility === "public")
         .map((event) => (viewer ? { ...event, isSaved: false } : event)),
-      { q: options.query, cat: options.category, date: options.date },
-    );
-    const result = paginate(filtered, page, pageSize);
+      {
+        q: options.query,
+        cat: normaliseCategoryParam(options.category),
+        date: normaliseDateParam(options.date),
+      },
+    ).filter((event) => !discovery.upcomingFrom || Date.parse(event.startsAt) >= Date.parse(discovery.upcomingFrom));
+    const result = paginate(filtered, discovery.page, discovery.pageSize);
     return {
       events: result.items,
       total: result.total,
@@ -149,50 +158,59 @@ export async function listPublishedEvents(options: ListEventsOptions = {}): Prom
   }
 
   const supabase = await createSupabaseServerClient();
-  const range = resolveDateFilter(options.category, options.date, new Date(), DEFAULT_TIMEZONE);
 
-  let query = supabase
-    .from("events")
-    .select(EVENT_COLUMNS, { count: "exact" })
-    .eq("status", "published")
-    .eq("visibility", "public");
+  const buildQuery = () => {
+    let query = supabase
+      .from("events")
+      .select(EVENT_COLUMNS, { count: "exact" })
+      .eq("status", "published")
+      .eq("visibility", "public");
 
-  if (range) {
-    query = query.gte("starts_at", range.start).lt("starts_at", range.endExclusive);
-  } else if (options.category) {
-    query = query.eq("category", options.category as EventCategory);
-  }
+    if (discovery.range) {
+      query = query.gte("starts_at", discovery.range.start).lt("starts_at", discovery.range.endExclusive);
+    } else if (discovery.upcomingFrom) {
+      query = query.gte("starts_at", discovery.upcomingFrom);
+    }
 
-  for (const term of searchTerms(options.query).map(escapeTerm).filter(Boolean)) {
-    query = query.or(
-      [
-        `title.ilike.%${term}%`,
-        `venue.ilike.%${term}%`,
-        `city.ilike.%${term}%`,
-        `description.ilike.%${term}%`,
-      ].join(","),
-    );
-  }
+    if (discovery.category) {
+      query = query.eq("category", discovery.category);
+    }
 
-  const from = (page - 1) * pageSize;
-  const { data, error, count } = await query
-    .order("starts_at", { ascending: true })
-    .range(from, from + pageSize - 1);
+    for (const group of discovery.orGroups) {
+      query = query.or(group.join(","));
+    }
 
-  if (error) {
-    console.error("listPublishedEvents", error.message);
+    return query.order("starts_at", { ascending: true });
+  };
+
+  const first = await buildQuery().range(discovery.from, discovery.to);
+
+  if (first.error) {
+    console.error("listPublishedEvents", first.error.message);
     throw new Error("Could not load events.");
   }
 
+  const total = first.count ?? 0;
+  const resolved = resolvePage(discovery.page, total, discovery.pageSize);
+  let rows = (first.data ?? []) as unknown as EventRow[];
+
+  // A page past the end returns no rows, so re-ask for the last page that exists.
+  if (resolved.page !== discovery.page) {
+    const last = await buildQuery().range(resolved.from, resolved.to);
+    if (last.error) {
+      console.error("listPublishedEvents", last.error.message);
+      throw new Error("Could not load events.");
+    }
+    rows = (last.data ?? []) as unknown as EventRow[];
+  }
+
   const savedIds = await savedIdsFor(viewer);
-  const rows = (data ?? []) as unknown as EventRow[];
   const images = await resolveEventImages(rows.map((row) => row.hero_image_url));
-  const total = count ?? 0;
   return {
     events: rows.map((row) => mapSummary(row, savedIds, images)),
     total,
-    page,
-    pageCount: Math.max(1, Math.ceil(total / pageSize)),
+    page: resolved.page,
+    pageCount: resolved.pageCount,
   };
 }
 
