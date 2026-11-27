@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import {
   forgotPasswordAction,
@@ -11,6 +11,8 @@ import {
   type AuthActionState,
 } from "@/lib/actions/auth";
 import { Icon } from "@/components/ui/Icon";
+import { PasswordField } from "@/components/auth/PasswordField";
+import { describePasswordProblem, passwordMeetsPolicy } from "@/lib/validation/password";
 
 const IDLE: AuthActionState = { status: "idle" };
 
@@ -25,6 +27,7 @@ function ErrorLine({ state }: { state: AuthActionState }) {
 
 export function LoginForm({ next }: { next: string }) {
   const [state, action, pending] = useActionState(loginAction, IDLE);
+  const [password, setPassword] = useState("");
 
   return (
     <form action={action} noValidate>
@@ -41,10 +44,13 @@ export function LoginForm({ next }: { next: string }) {
           required
         />
       </label>
-      <label className="fl">
-        Password
-        <input className="in" name="password" type="password" autoComplete="current-password" required />
-      </label>
+      <PasswordField
+        name="password"
+        label="Password"
+        autoComplete="current-password"
+        value={password}
+        onChange={setPassword}
+      />
       <ErrorLine state={state} />
       <button className="btn full" type="submit" disabled={pending}>
         {pending ? <span className="spin2" /> : null}
@@ -64,9 +70,27 @@ export function RegisterForm({ next }: { next: string }) {
   const [role, setRole] = useState<"attendee" | "organiser">(
     state.values?.role === "organiser" ? "organiser" : "attendee",
   );
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [attempted, setAttempted] = useState(false);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const confirmRef = useRef<HTMLInputElement>(null);
+
+  const policyOk = passwordMeetsPolicy(password);
+  const passwordsMatch = confirmPassword === password;
+  const passwordError = attempted && !policyOk ? describePasswordProblem(password) : null;
+  const confirmError = (attempted || confirmPassword.length > 0) && !passwordsMatch ? "The passwords do not match." : null;
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    if (policyOk && passwordsMatch) return;
+    event.preventDefault();
+    setAttempted(true);
+    if (!policyOk) passwordRef.current?.focus();
+    else confirmRef.current?.focus();
+  };
 
   return (
-    <form action={action} noValidate>
+    <form action={action} noValidate onSubmit={handleSubmit}>
       <input type="hidden" name="next" value={next} />
       <label className="fl">
         Full name
@@ -98,14 +122,25 @@ export function RegisterForm({ next }: { next: string }) {
       <p className="note" style={{ marginTop: -4 }}>
         Oblee is for people aged 18 and over. We store your date of birth only to check your age.
       </p>
-      <label className="fl">
-        Password
-        <input className="in" name="password" type="password" autoComplete="new-password" minLength={8} required />
-      </label>
-      <label className="fl">
-        Confirm password
-        <input className="in" name="confirmPassword" type="password" autoComplete="new-password" minLength={8} required />
-      </label>
+      <PasswordField
+        name="password"
+        label="Password"
+        autoComplete="new-password"
+        value={password}
+        onChange={setPassword}
+        guidance
+        error={passwordError}
+        inputRef={passwordRef}
+      />
+      <PasswordField
+        name="confirmPassword"
+        label="Confirm password"
+        autoComplete="new-password"
+        value={confirmPassword}
+        onChange={setConfirmPassword}
+        error={confirmError}
+        inputRef={confirmRef}
+      />
       <div className="fl">I want to</div>
       <div className="two">
         <label className={role === "attendee" ? "rad on" : "rad"}>
@@ -170,17 +205,46 @@ export function ForgotPasswordForm() {
 
 export function ResetPasswordForm() {
   const [state, action, pending] = useActionState(resetPasswordAction, IDLE);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [attempted, setAttempted] = useState(false);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const confirmRef = useRef<HTMLInputElement>(null);
+
+  const policyOk = passwordMeetsPolicy(password);
+  const passwordsMatch = confirmPassword === password;
+  const passwordError = attempted && !policyOk ? describePasswordProblem(password) : null;
+  const confirmError = (attempted || confirmPassword.length > 0) && !passwordsMatch ? "The passwords do not match." : null;
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    if (policyOk && passwordsMatch) return;
+    event.preventDefault();
+    setAttempted(true);
+    if (!policyOk) passwordRef.current?.focus();
+    else confirmRef.current?.focus();
+  };
 
   return (
-    <form action={action} noValidate>
-      <label className="fl">
-        New password
-        <input className="in" name="password" type="password" autoComplete="new-password" minLength={8} required />
-      </label>
-      <label className="fl">
-        Confirm new password
-        <input className="in" name="confirmPassword" type="password" autoComplete="new-password" minLength={8} required />
-      </label>
+    <form action={action} noValidate onSubmit={handleSubmit}>
+      <PasswordField
+        name="password"
+        label="New password"
+        autoComplete="new-password"
+        value={password}
+        onChange={setPassword}
+        guidance
+        error={passwordError}
+        inputRef={passwordRef}
+      />
+      <PasswordField
+        name="confirmPassword"
+        label="Confirm new password"
+        autoComplete="new-password"
+        value={confirmPassword}
+        onChange={setConfirmPassword}
+        error={confirmError}
+        inputRef={confirmRef}
+      />
       <ErrorLine state={state} />
       <button className="btn full" type="submit" disabled={pending}>
         {pending ? <span className="spin2" /> : null}
