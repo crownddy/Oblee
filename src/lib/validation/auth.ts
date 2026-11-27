@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { MINIMUM_AGE, isAdult, isIsoDate } from "@/lib/utils/age";
+import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from "@/lib/validation/password";
 
 const emailField = z.string().trim().toLowerCase().min(1, "Enter your email address.").max(254, "That email is too long.").pipe(z.email("Enter a valid email address."));
 
@@ -12,7 +13,10 @@ export const registerSchema = z
   .object({
     fullName: z.string().trim().min(2, "Enter your full name.").max(80, "That name is too long."),
     email: emailField,
-    password: z.string().min(8, "Use a password of at least 8 characters.").max(200),
+    password: z
+      .string()
+      .min(PASSWORD_MIN_LENGTH, `Use a password of at least ${PASSWORD_MIN_LENGTH} characters.`)
+      .max(PASSWORD_MAX_LENGTH),
     confirmPassword: z.string(),
     dateOfBirth: z
       .string()
@@ -40,7 +44,10 @@ export const forgotPasswordSchema = z.object({ email: emailField });
 
 export const resetPasswordSchema = z
   .object({
-    password: z.string().min(8, "Use a password of at least 8 characters.").max(200),
+    password: z
+      .string()
+      .min(PASSWORD_MIN_LENGTH, `Use a password of at least ${PASSWORD_MIN_LENGTH} characters.`)
+      .max(PASSWORD_MAX_LENGTH),
     confirmPassword: z.string(),
   })
   .refine((value) => value.password === value.confirmPassword, {

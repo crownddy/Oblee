@@ -11,6 +11,7 @@ import {
   resetPasswordSchema,
 } from "@/lib/validation/auth";
 import { getOrigin, safeNextPath } from "@/lib/utils/request";
+import { describeAuthError } from "@/lib/auth/errors";
 
 export interface AuthActionState {
   status: "idle" | "error" | "notice";
@@ -55,10 +56,7 @@ export async function loginAction(
   });
 
   if (error) {
-    const message = /confirm/i.test(error.message)
-      ? "Confirm your email first. Check your inbox for the Oblee verification link."
-      : "Wrong email or password.";
-    return { status: "error", message, values: { email: raw.email, next: raw.next } };
+    return { status: "error", message: describeAuthError(error, "login"), values: { email: raw.email, next: raw.next } };
   }
 
   revalidatePath("/", "layout");
@@ -104,10 +102,11 @@ export async function registerAction(
   });
 
   if (error) {
-    const message = /already|registered/i.test(error.message)
-      ? "That email already has an account. Try logging in."
-      : "We could not create your account. Try again.";
-    return { status: "error", message, values: { fullName: raw.fullName, email: raw.email, role: raw.role } };
+    return {
+      status: "error",
+      message: describeAuthError(error, "signup"),
+      values: { fullName: raw.fullName, email: raw.email, role: raw.role, dateOfBirth: raw.dateOfBirth },
+    };
   }
 
   if (data.user && data.user.identities && data.user.identities.length === 0) {
@@ -184,7 +183,7 @@ export async function resetPasswordAction(
 
   const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
   if (error) {
-    return { status: "error", message: "We could not update your password. Request a new link." };
+    return { status: "error", message: describeAuthError(error, "reset") };
   }
 
   await supabase.auth.signOut();

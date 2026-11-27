@@ -34,6 +34,11 @@ Access rules:
 - `canViewEvent()` in `src/lib/utils/events.ts` mirrors the SQL rule. Change both together.
 - Registration requires `date_of_birth`; `registerSchema` rejects under-18s and
   `handle_new_user()` re-checks in the database (`0009_age_restriction.sql`). Never trust the form.
+- Password policy lives in `src/lib/validation/password.ts` (`PASSWORD_MIN_LENGTH` 8,
+  `PASSWORD_MAX_LENGTH` 200). `registerSchema`, `resetPasswordSchema` and the live checklist in
+  `PasswordField` all read those constants, so change the policy there and nowhere else. Client
+  checks are advisory; Supabase Auth stays the authority, and `describeAuthError()` in
+  `src/lib/auth/errors.ts` turns its failures into safe, actionable copy without echoing internals.
 - Accounts without a stored date of birth cannot publish, edit or restore events.
   `enforce_verified_organiser()` (`0011_age_verification.sql`) is the authority; the UI gate is
   `requireVerifiedAdult()` and the one-field screen is `/verify-age` (`set_my_date_of_birth`).
