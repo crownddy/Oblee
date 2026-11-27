@@ -31,9 +31,9 @@ const confirmNew = () => screen.getByLabelText("Confirm new password") as HTMLIn
 
 const typeInto = (element: HTMLElement, value: string) => fireEvent.change(element, { target: { value } });
 
-/** Field errors sit alongside the form-level ErrorLine, which is also an alert. */
+/** Field errors are alerts too, so match on the wording rather than the first one. */
 const alertWith = (text: RegExp) =>
-  screen.getAllByRole("alert").find((element) => element.textContent && text.test(element.textContent));
+  screen.queryAllByRole("alert").find((element) => element.textContent && text.test(element.textContent));
 
 function fillRegistration() {
   typeInto(screen.getByLabelText("Full name"), "Ada Obi");

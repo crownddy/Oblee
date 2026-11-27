@@ -2,12 +2,15 @@
 
 import { useActionState } from "react";
 import { submitDateOfBirthAction, type AgeActionState } from "@/lib/actions/age";
+import { Alert } from "@/components/ui/Alert";
+import { useStatusAlert } from "@/components/ui/useStatusAlert";
 import { latestAdultBirthDate } from "@/lib/utils/age";
 
 const IDLE: AgeActionState = { status: "idle" };
 
 export function AgeVerificationForm({ next }: { next: string }) {
   const [state, action, pending] = useActionState(submitDateOfBirthAction, IDLE);
+  const { alert, dismiss } = useStatusAlert(state);
 
   return (
     <form action={action} noValidate>
@@ -27,9 +30,11 @@ export function AgeVerificationForm({ next }: { next: string }) {
         Oblee is for people aged 18 and over. We check this on our servers and keep only the date. No ID, passport or
         selfie is ever requested.
       </p>
-      <p className="err" role="alert">
-        {state.status === "error" ? state.message : ""}
-      </p>
+      {alert ? (
+        <Alert tone={alert.tone} onDismiss={dismiss}>
+          {alert.message}
+        </Alert>
+      ) : null}
       <button className="btn full" type="submit" disabled={pending}>
         {pending ? <span className="spin2" /> : null}
         {pending ? "Checking…" : "Confirm my age"}
