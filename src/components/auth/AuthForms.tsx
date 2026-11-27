@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useRef, useState, type FormEvent } from "react";
+import { useActionState, useState } from "react";
 import Link from "next/link";
 import {
   forgotPasswordAction,
@@ -14,7 +14,7 @@ import { Icon } from "@/components/ui/Icon";
 import { Alert } from "@/components/ui/Alert";
 import { PasswordField } from "@/components/auth/PasswordField";
 import { useAuthAlert } from "@/components/auth/useAuthAlert";
-import { describePasswordProblem, passwordMeetsPolicy } from "@/lib/validation/password";
+import { usePasswordPair } from "@/components/auth/usePasswordPair";
 
 const IDLE: AuthActionState = { status: "idle" };
 
@@ -68,31 +68,14 @@ export function RegisterForm({ next }: { next: string }) {
   const [role, setRole] = useState<"attendee" | "organiser">(
     state.values?.role === "organiser" ? "organiser" : "attendee",
   );
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [attempted, setAttempted] = useState(false);
-  const passwordRef = useRef<HTMLInputElement>(null);
-  const confirmRef = useRef<HTMLInputElement>(null);
+  const pair = usePasswordPair();
   const alerts = useAuthAlert(state);
 
-  const policyOk = passwordMeetsPolicy(password);
-  const passwordsMatch = confirmPassword === password;
-  const passwordError =
-    (attempted && !policyOk ? describePasswordProblem(password) : null) ?? alerts.passwordError;
-  const confirmError =
-    ((attempted || confirmPassword.length > 0) && !passwordsMatch ? "The passwords do not match." : null) ??
-    alerts.confirmPasswordError;
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    if (policyOk && passwordsMatch) return;
-    event.preventDefault();
-    setAttempted(true);
-    if (!policyOk) passwordRef.current?.focus();
-    else confirmRef.current?.focus();
-  };
+  const passwordError = pair.passwordError ?? alerts.passwordError;
+  const confirmError = pair.confirmError ?? alerts.confirmPasswordError;
 
   return (
-    <form action={action} noValidate onSubmit={handleSubmit}>
+    <form action={action} noValidate onSubmit={pair.guardSubmit}>
       <input type="hidden" name="next" value={next} />
       <label className="fl">
         Full name
@@ -128,20 +111,20 @@ export function RegisterForm({ next }: { next: string }) {
         name="password"
         label="Password"
         autoComplete="new-password"
-        value={password}
-        onChange={setPassword}
+        value={pair.password}
+        onChange={pair.setPassword}
         guidance
         error={passwordError}
-        inputRef={passwordRef}
+        inputRef={pair.passwordRef}
       />
       <PasswordField
         name="confirmPassword"
         label="Confirm password"
         autoComplete="new-password"
-        value={confirmPassword}
-        onChange={setConfirmPassword}
+        value={pair.confirmPassword}
+        onChange={pair.setConfirmPassword}
         error={confirmError}
-        inputRef={confirmRef}
+        inputRef={pair.confirmRef}
       />
       <div className="fl">I want to</div>
       <div className="two">
@@ -216,49 +199,32 @@ export function ForgotPasswordForm() {
 
 export function ResetPasswordForm() {
   const [state, action, pending] = useActionState(resetPasswordAction, IDLE);
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [attempted, setAttempted] = useState(false);
-  const passwordRef = useRef<HTMLInputElement>(null);
-  const confirmRef = useRef<HTMLInputElement>(null);
+  const pair = usePasswordPair();
   const alerts = useAuthAlert(state);
 
-  const policyOk = passwordMeetsPolicy(password);
-  const passwordsMatch = confirmPassword === password;
-  const passwordError =
-    (attempted && !policyOk ? describePasswordProblem(password) : null) ?? alerts.passwordError;
-  const confirmError =
-    ((attempted || confirmPassword.length > 0) && !passwordsMatch ? "The passwords do not match." : null) ??
-    alerts.confirmPasswordError;
-
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    if (policyOk && passwordsMatch) return;
-    event.preventDefault();
-    setAttempted(true);
-    if (!policyOk) passwordRef.current?.focus();
-    else confirmRef.current?.focus();
-  };
+  const passwordError = pair.passwordError ?? alerts.passwordError;
+  const confirmError = pair.confirmError ?? alerts.confirmPasswordError;
 
   return (
-    <form action={action} noValidate onSubmit={handleSubmit}>
+    <form action={action} noValidate onSubmit={pair.guardSubmit}>
       <PasswordField
         name="password"
         label="New password"
         autoComplete="new-password"
-        value={password}
-        onChange={setPassword}
+        value={pair.password}
+        onChange={pair.setPassword}
         guidance
         error={passwordError}
-        inputRef={passwordRef}
+        inputRef={pair.passwordRef}
       />
       <PasswordField
         name="confirmPassword"
         label="Confirm new password"
         autoComplete="new-password"
-        value={confirmPassword}
-        onChange={setConfirmPassword}
+        value={pair.confirmPassword}
+        onChange={pair.setConfirmPassword}
         error={confirmError}
-        inputRef={confirmRef}
+        inputRef={pair.confirmRef}
       />
 {alerts.alert ? (
         <Alert tone={alerts.alert.tone} onDismiss={alerts.dismiss}>

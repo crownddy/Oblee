@@ -23,7 +23,7 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("bottom navigation", () => {
-  it("keeps the existing items in order and points Profile at settings", () => {
+  it("keeps the existing items in order and labels the settings tab", () => {
     const { container } = render(<BottomNav />);
 
     const links = Array.from(container.querySelectorAll("a")).map((link) => [
@@ -36,26 +36,50 @@ describe("bottom navigation", () => {
       ["/explore", "Explore"],
       ["/events/new", ""],
       ["/saved", "Saved"],
-      ["/settings", "Profile"],
+      ["/settings", "Settings"],
     ]);
   });
 
-  it("keeps the Profile tab label, icon and size", () => {
+  it("labels the settings tab Settings with a gear icon", () => {
     const { container } = render(<BottomNav />);
-    const profile = screen.getByRole("link", { name: "Profile" });
+    const settings = screen.getByRole("link", { name: "Settings" });
 
-    expect(profile).toHaveTextContent("Profile");
-    expect(profile.querySelector("svg")).not.toBeNull();
+    expect(settings).toHaveAttribute("href", "/settings");
+    expect(settings).toHaveTextContent("Settings");
+    expect(settings.querySelector("svg")).not.toBeNull();
+    // The gear is drawn from a circle plus a toothed path, not the user silhouette.
+    expect(settings.querySelector("svg")?.innerHTML).toMatch(/circle/);
+    expect(settings.querySelector("svg")?.innerHTML).not.toMatch(/<path d="M4 21c1-4/);
     expect(container.querySelectorAll(".nav a:not(.plus)")).toHaveLength(4);
     expect(container.querySelector(".nav .plus")).not.toBeNull();
   });
 
-  it("marks Profile as the current tab on the settings page", () => {
+  it("marks Settings as the current tab on the settings page", () => {
     route.pathname = "/settings";
     render(<BottomNav />);
 
-    expect(screen.getByRole("link", { name: "Profile" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Settings" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Home" })).not.toHaveAttribute("aria-current");
+  });
+
+  it("uses one-word labels that fit a narrow tab", () => {
+    const { container } = render(<BottomNav />);
+
+    const labels = Array.from(container.querySelectorAll(".nav a:not(.plus)")).map((link) =>
+      (link.textContent ?? "").trim(),
+    );
+
+    for (const label of labels) {
+      expect(label).toMatch(/^[A-Z][a-z]+$/);
+      expect(label.length).toBeLessThanOrEqual(8);
+    }
+  });
+
+  it("keeps the profile page reachable from the header", () => {
+    render(<SiteHeader signedIn displayName="Ada Obi" />);
+
+    expect(screen.getByRole("link", { name: /your profile/i })).toHaveAttribute("href", "/profile");
+    expect(screen.queryByRole("link", { name: "Profile" })).toBeNull();
   });
 });
 

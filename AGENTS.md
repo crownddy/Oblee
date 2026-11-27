@@ -39,6 +39,15 @@ Access rules:
   `PasswordField` all read those constants, so change the policy there and nowhere else. Client
   checks are advisory; Supabase Auth stays the authority, and `describeAuthError()` in
   `src/lib/auth/errors.ts` turns its failures into safe, actionable copy without echoing internals.
+- `Modal` (`src/components/ui/Modal.tsx`) portals its sheet into `#app`. Keep it that way: rendered
+  in place it inherits the action bar's `position: relative` and gets clipped to the bar. It focuses
+  `[data-autofocus]` on open, restores focus on close, traps Tab and ignores Escape when
+  `dismissible={false}` (use that while a request is in flight).
+- Signup and password reset share `usePasswordPair()` (`src/components/auth/usePasswordPair.ts`).
+  Add password rules there or in `src/lib/validation/password.ts`, never in one form alone.
+- Bottom navigation labels are single words (`Home`, `Explore`, `Saved`, `Settings`) and the
+  settings tab uses the `gear` icon. `/profile` stays reachable from the header avatar; the bottom
+  bar is not a profile tab.
 - Action results surface through `Alert` (`src/components/ui/Alert.tsx`): errors are
   `role="alert"` / assertive, the other tones are `role="status"` / polite, every alert carries a
   labelled close button, and nothing auto-dismisses. `useStatusAlert()` / `useAuthAlert()` own the
