@@ -139,12 +139,12 @@ describe("settings appearance", () => {
 });
 
 describe("settings page", () => {
-  it("renders the appearance picker and the settings sections", async () => {
+  it("renders the collapsed appearance row and the settings sections", async () => {
     render(<UIProvider>{await SettingsPage()}</UIProvider>);
 
     expect(screen.getByRole("heading", { name: "Settings" })).toBeInTheDocument();
-    expect(screen.getByText("Appearance")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /dark mode/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /appearance/i })).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("button", { name: /dark mode/i })).toBeNull();
 
     expect(screen.getByRole("heading", { name: "Notifications" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Privacy & safety" })).toBeInTheDocument();
