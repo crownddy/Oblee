@@ -45,6 +45,13 @@ Access rules:
   `dismissible={false}` (use that while a request is in flight).
 - Signup and password reset share `usePasswordPair()` (`src/components/auth/usePasswordPair.ts`).
   Add password rules there or in `src/lib/validation/password.ts`, never in one form alone.
+- Discovery filtering is built by `buildDiscoveryQuery()` in `src/lib/utils/discovery.ts` and is
+  pure: it returns the date range (or an upcoming-only lower bound), the category, escaped search
+  terms, PostgREST `or()` groups and the page window. Both `listPublishedEvents` (Supabase) and the
+  demo branch use it, so search fields, category handling and pagination cannot drift again. Add
+  query-behaviour tests there, not against the demo filter.
+- Discovery never shows the past: without an explicit date the query is bounded by `starts_at >= now`,
+  and an explicit date/Today/Weekend range replaces that bound. Category and date are ANDed.
 - The settings Appearance card is a disclosure (`AppearanceSection`): collapsed by default, a real
   `<button>` with `aria-expanded`/`aria-controls`, wrapping the existing `AppearancePicker` and
   `THEMES`. Never add a second theme selector or theme list.
