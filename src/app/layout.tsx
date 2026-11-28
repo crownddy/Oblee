@@ -11,7 +11,7 @@ import {
   serializeJsonLd,
   websiteJsonLd,
 } from "@/lib/seo";
-import { siteUrl } from "@/lib/supabase/config";
+import { siteUrl } from "@/lib/site-url";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
