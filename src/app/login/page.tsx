@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PRIVATE_ROBOTS } from "@/lib/seo";
 import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ConfigNotice } from "@/components/ui/ConfigNotice";
@@ -10,7 +11,10 @@ import { safeNextPath } from "@/lib/utils/request";
 import { firstParam, type SearchParamsRecord } from "@/lib/utils/searchParams";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Log in" };
+export const metadata = {
+  title: "Log in",
+  robots: PRIVATE_ROBOTS,
+};
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<SearchParamsRecord> }) {
   const params = await searchParams;

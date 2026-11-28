@@ -106,11 +106,11 @@ export function Splash() {
         </svg>
         <i className="rp" />
         <i className="rp" style={{ animationDelay: "1.75s" }} />
-        <img className="pin" src="/brand/logo-pin.png" alt="" />
+        <img className="pin" src="/brand/logo-pin.png" alt="" width={198} height={240} />
       </div>
-      <img className="wm2 lt" src="/brand/wordmark-on-light.png" alt="Oblee" />
+      <img className="wm2 lt" src="/brand/wordmark-on-light.png" alt="Oblee" width={319} height={100} />
       <img className="wm2 dk" src="/brand/wordmark-on-dark.png" alt="" />
-      <img className="stl lt" src="/brand/tagline-on-light.png" alt="Find the party you love" />
+      <img className="stl lt" src="/brand/tagline-on-light.png" alt="Find the party you love" width={302} height={44} />
       <img className="stl dk" src="/brand/tagline-on-dark.png" alt="" />
     </div>
   );

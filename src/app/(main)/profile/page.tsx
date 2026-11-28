@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PRIVATE_ROBOTS } from "@/lib/seo";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { EventCard } from "@/components/events/EventCard";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -11,7 +12,10 @@ import { initials, pluralize } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Your profile" };
+export const metadata = {
+  title: "Your profile",
+  robots: PRIVATE_ROBOTS,
+};
 
 type SearchParams = Record<string, string | string[] | undefined>;
 

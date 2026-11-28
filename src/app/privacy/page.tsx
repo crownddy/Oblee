@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/PageHeader";
 
-export const metadata = { title: "Privacy Policy" };
+const DESCRIPTION =
+  "How Oblee stores your account details, saved events and published events, and the choices you have over them.";
+
+export const metadata = {
+  title: "Privacy Policy",
+  description: DESCRIPTION,
+  alternates: { canonical: "/privacy" },
+  openGraph: { title: "Privacy Policy", description: DESCRIPTION, url: "/privacy" },
+};
 
 export default function PrivacyPage() {
   return (

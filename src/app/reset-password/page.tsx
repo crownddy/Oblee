@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PRIVATE_ROBOTS } from "@/lib/seo";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ConfigNotice } from "@/components/ui/ConfigNotice";
 import { ResetPasswordForm } from "@/components/auth/AuthForms";
@@ -6,7 +7,10 @@ import { getViewer } from "@/lib/auth/session";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Choose a new password" };
+export const metadata = {
+  title: "Choose a new password",
+  robots: PRIVATE_ROBOTS,
+};
 
 export default async function ResetPasswordPage() {
   const viewer = isSupabaseConfigured ? await getViewer() : null;

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PRIVATE_ROBOTS } from "@/lib/seo";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ConfigNotice } from "@/components/ui/ConfigNotice";
 import { Icon } from "@/components/ui/Icon";
@@ -7,7 +8,10 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { firstParam, type SearchParamsRecord } from "@/lib/utils/searchParams";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Verify your email" };
+export const metadata = {
+  title: "Verify your email",
+  robots: PRIVATE_ROBOTS,
+};
 
 export default async function VerifyEmailPage({ searchParams }: { searchParams: Promise<SearchParamsRecord> }) {
   const params = await searchParams;

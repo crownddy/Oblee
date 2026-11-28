@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PRIVATE_ROBOTS } from "@/lib/seo";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { EventCard } from "@/components/events/EventCard";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -9,7 +10,10 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { pluralize } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Saved events" };
+export const metadata = {
+  title: "Saved events",
+  robots: PRIVATE_ROBOTS,
+};
 
 export default async function SavedPage() {
   const viewer = await requireUser("/saved");

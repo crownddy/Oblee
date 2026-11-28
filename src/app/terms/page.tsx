@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/PageHeader";
 
-export const metadata = { title: "Terms and Conditions" };
+const DESCRIPTION =
+  "The rules for using Oblee as an attendee, an organiser or an administrator, including event listings and saved events.";
+
+export const metadata = {
+  title: "Terms and Conditions",
+  description: DESCRIPTION,
+  alternates: { canonical: "/terms" },
+  openGraph: { title: "Terms and Conditions", description: DESCRIPTION, url: "/terms" },
+};
 
 export default function TermsPage() {
   return (
