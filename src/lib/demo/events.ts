@@ -6,6 +6,7 @@ import {
 } from "@/lib/constants";
 import type { EventDetail, EventSummary } from "@/lib/types/domain";
 import { toInstant, todayKey } from "@/lib/utils/format";
+import { pricingFrom } from "@/lib/utils/events";
 
 /**
  * Read-only sample content shown when Supabase is not configured.
@@ -338,6 +339,7 @@ export function demoEvents(now: Date = new Date()): EventDetail[] {
       startsAt,
       timezone: DEFAULT_TIMEZONE,
       isFree: !seed.tickets?.length,
+      ...pricingFrom(!seed.tickets?.length, (seed.tickets ?? []).map(([, price]) => price)),
       heroImageUrl: null,
       heroImagePath: null,
       colorFrom: palette[0],
@@ -394,6 +396,8 @@ export function toSummary(event: EventDetail): EventSummary {
     organiserId: event.organiserId,
     organiserName: event.organiserName,
     tags: [...event.tags],
+    priceFrom: event.priceFrom,
+    priceTierCount: event.priceTierCount,
     isSaved: event.isSaved,
   };
 }

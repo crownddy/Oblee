@@ -24,6 +24,8 @@ import { resolveEventImages } from "@/lib/services/storage";
 const EVENT_COLUMNS =
   "id, title, category, venue, city, starts_at, timezone, is_free, hero_image_url, color_from, color_to, status, organiser_id, tags, description, security_note, identity_note, visibility, published_at, archived_at, profiles!events_organiser_id_fkey(full_name, avatar_url), featured_events(rank)";
 
+const EVENT_LIST_COLUMNS = `${EVENT_COLUMNS}, event_ticket_tiers(price)`;
+
 const EVENT_DETAIL_COLUMNS = `${EVENT_COLUMNS}, event_ticket_tiers(name, price, position), event_tables(seats, quantity, position), event_contacts(kind, caption, country_code, value, position)`;
 
 interface OrganiserJoin {
@@ -54,6 +56,7 @@ interface EventRow {
   archived_at: string | null;
   profiles: OrganiserJoin | OrganiserJoin[] | null;
   featured_events: Array<{ rank: number }> | { rank: number } | null;
+  event_ticket_tiers?: Array<{ price: number | string }> | null;
 }
 
 interface EventDetailRow extends EventRow {
@@ -85,6 +88,19 @@ function coverUrl(row: EventRow, images?: Map<string, string | null>): string | 
   return images.get(row.hero_image_url) ?? null;
 }
 
+function tierPrices(row: EventRow): number[] {
+  return (row.event_ticket_tiers ?? [])
+    .map((tier) => Number(tier.price))
+    .filter((price) => Number.isFinite(price) && price > 0);
+}
+
+/** Cheapest tier for a paid event; null for free events and events with no pricing. */
+function priceFrom(row: EventRow): number | null {
+  if (row.is_free) return null;
+  const prices = tierPrices(row);
+  return prices.length > 0 ? Math.min(...prices) : null;
+}
+
 function mapSummary(
   row: EventRow,
   savedIds: Set<string>,
@@ -106,8 +122,10 @@ function mapSummary(
     status: row.status,
     visibility: row.visibility,
     organiserId: row.organiser_id,
-    organiserName: organiser?.full_name || "Oblee organiser",
+    organiserName: organiser?.full_name?.trim() || null,
     tags: row.tags ?? [],
+    priceFrom: priceFrom(row),
+    priceTierCount: tierPrices(row).length,
     isSaved: savedIds.has(row.id),
   };
 }
@@ -162,7 +180,7 @@ export async function listPublishedEvents(options: ListEventsOptions = {}): Prom
   const buildQuery = () => {
     let query = supabase
       .from("events")
-      .select(EVENT_COLUMNS, { count: "exact" })
+      .select(EVENT_LIST_COLUMNS, { count: "exact" })
       .eq("status", "published")
       .eq("visibility", "public");
 
@@ -228,7 +246,7 @@ export async function listFeaturedEvents(limit = FEATURED_LIMIT): Promise<EventS
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("featured_events")
-    .select(`rank, events!inner(${EVENT_COLUMNS})`)
+    .select(`rank, events!inner(${EVENT_LIST_COLUMNS})`)
     .order("rank", { ascending: true })
     .limit(limit);
 
@@ -348,7 +366,7 @@ export async function listEventsForOrganiser(
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("events")
-    .select(EVENT_COLUMNS)
+    .select(EVENT_LIST_COLUMNS)
     .eq("organiser_id", organiserId)
     .eq("status", options.archived ? "archived" : "published")
     .order("starts_at", { ascending: !options.archived });
@@ -369,7 +387,7 @@ export async function listSavedEvents(viewer: Viewer): Promise<EventSummary[]> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("saved_events")
-    .select(`created_at, events!inner(${EVENT_COLUMNS})`)
+    .select(`created_at, events!inner(${EVENT_LIST_COLUMNS})`)
     .eq("user_id", viewer.id)
     .order("created_at", { ascending: false });
 

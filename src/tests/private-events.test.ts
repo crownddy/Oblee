@@ -77,6 +77,8 @@ function summary(overrides: Partial<EventSummary> & Pick<EventSummary, "id">): E
     visibility: "public",
     organiserId: ORGANISER,
     organiserName: "Oblee Studio",
+    priceFrom: null,
+    priceTierCount: 0,
     tags: [],
     isSaved: false,
     ...overrides,
