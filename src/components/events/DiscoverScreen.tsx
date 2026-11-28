@@ -7,7 +7,12 @@ import { Pager } from "@/components/events/Pager";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getViewer } from "@/lib/auth/session";
 import { listFeaturedEvents, listPublishedEvents } from "@/lib/services/events";
-import { normaliseCategoryParam, normaliseDateParam } from "@/lib/utils/discovery";
+import {
+  carouselEvents,
+  normaliseCategoryParam,
+  normaliseDateParam,
+  shouldShowCarousel,
+} from "@/lib/utils/discovery";
 
 export type SearchParamsRecord = Record<string, string | string[] | undefined>;
 
@@ -35,7 +40,8 @@ export async function DiscoverScreen({
     listFeaturedEvents(),
   ]);
 
-  const showCarousel = mode === "home" && !query && !date && featured.length > 0;
+  const slides = carouselEvents(featured, result.events);
+  const showCarousel = shouldShowCarousel(mode, { query, date }, slides);
   const hasFilters = Boolean(query || category || date);
 
   return (
@@ -45,7 +51,7 @@ export async function DiscoverScreen({
         <div className="pad">
           <DiscoverFilters path={path} initialQuery={query} category={category} date={date} />
 
-          {showCarousel ? <FeaturedCarousel events={featured} /> : null}
+          {showCarousel ? <FeaturedCarousel events={slides} /> : null}
 
           <div className="sec">
             <h3>{result.events.length === 0 ? (mode === "home" ? "Upcoming Events" : "Explore events") : mode === "home" ? "Upcoming Events" : "Explore events"}</h3>
