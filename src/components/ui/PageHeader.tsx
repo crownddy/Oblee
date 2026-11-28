@@ -32,7 +32,7 @@ export function PageHeader({
       >
         <Icon name={variant === "close" ? "close" : "back"} size={22} />
       </Link>
-      <span>{title}</span>
+      <h1>{title}</h1>
       <span style={{ width: 40 }} />
     </div>
   );
