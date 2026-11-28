@@ -1,4 +1,6 @@
+import { cache } from "react";
 import { FEATURED_LIMIT } from "@/lib/constants";
+import { isEventId } from "@/lib/seo";
 import type {
   EventDetail,
   EventListResult,
@@ -277,7 +279,16 @@ export async function listFeaturedEvents(limit = FEATURED_LIMIT): Promise<EventS
   return rows.map((row) => mapSummary(row, savedIds, images));
 }
 
-export async function getEventForViewer(id: string): Promise<EventDetail | null> {
+/**
+ * Wrapped in `cache()`: `generateMetadata` and the page body both resolve the
+ * same event, and this keeps that to a single round trip per request.
+ */
+export const getEventForViewer = cache(async function getEventForViewer(
+  id: string,
+): Promise<EventDetail | null> {
+  // A malformed id can never match a row; answering "not found" here keeps a
+  // bad URL a 404 instead of a database error (and a 500).
+  if (!isEventId(id)) return null;
   const viewer = await getViewer();
 
   if (!isSupabaseConfigured) {
@@ -369,6 +380,33 @@ export async function getEventForViewer(id: string): Promise<EventDetail | null>
     canReport: Boolean(viewer && !isOwner && row.status === "published"),
     isReportedByViewer,
   };
+});
+
+/**
+ * Public published events, for the sitemap. Only ids and the row's own
+ * `updated_at` are read: no titles, contacts or images leave the database here,
+ * and archived, removed and private events never appear.
+ */
+export async function listSitemapEvents(limit = 5000): Promise<Array<{ id: string; updatedAt: string | null }>> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("events")
+    .select("id, updated_at")
+    .eq("status", "published")
+    .eq("visibility", "public")
+    .order("updated_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error("listSitemapEvents", error.message);
+    throw new Error("Could not load events for the sitemap.");
+  }
+
+  return ((data ?? []) as Array<{ id: string; updated_at: string | null }>).map((row) => ({
+    id: row.id,
+    updatedAt: row.updated_at ?? null,
+  }));
 }
 
 export async function listEventsForOrganiser(

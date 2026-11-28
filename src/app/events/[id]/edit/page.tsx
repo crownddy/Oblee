@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { PRIVATE_ROBOTS } from "@/lib/seo";
 import { EventWizard, type WizardInitial } from "@/components/organiser/EventWizard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { requireVerifiedAdult } from "@/lib/auth/session";
@@ -7,7 +8,10 @@ import { DEFAULT_TIMEZONE } from "@/lib/constants";
 import { fromInstant } from "@/lib/utils/format";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Edit event" };
+export const metadata = {
+  title: "Edit event",
+  robots: PRIVATE_ROBOTS,
+};
 
 export default async function EditEventPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

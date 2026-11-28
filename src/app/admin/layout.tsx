@@ -1,9 +1,13 @@
 import { requireAdmin } from "@/lib/auth/session";
+import { PRIVATE_ROBOTS } from "@/lib/seo";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { AdminTabs } from "@/components/admin/AdminTabs";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Administration" };
+export const metadata = {
+  title: "Administration",
+  robots: PRIVATE_ROBOTS,
+};
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const viewer = await requireAdmin();

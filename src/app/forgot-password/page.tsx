@@ -1,11 +1,15 @@
 import Link from "next/link";
+import { PRIVATE_ROBOTS } from "@/lib/seo";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ConfigNotice } from "@/components/ui/ConfigNotice";
 import { ForgotPasswordForm } from "@/components/auth/AuthForms";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Reset your password" };
+export const metadata = {
+  title: "Reset your password",
+  robots: PRIVATE_ROBOTS,
+};
 
 export default function ForgotPasswordPage() {
   return (

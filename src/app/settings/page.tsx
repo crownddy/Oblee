@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PRIVATE_ROBOTS } from "@/lib/seo";
 import pkg from "../../../package.json";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { AppearanceSection } from "@/components/settings/AppearanceSection";
@@ -7,7 +8,10 @@ import { logoutAction } from "@/lib/actions/auth";
 import { getViewer } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Settings" };
+export const metadata = {
+  title: "Settings",
+  robots: PRIVATE_ROBOTS,
+};
 
 export default async function SettingsPage() {
   const viewer = await getViewer();

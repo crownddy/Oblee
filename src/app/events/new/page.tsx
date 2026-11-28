@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PRIVATE_ROBOTS } from "@/lib/seo";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { PromoteButton } from "@/components/profile/PromoteButton";
 import { EventWizard } from "@/components/organiser/EventWizard";
@@ -6,7 +7,10 @@ import { canPublish, requireVerifiedAdult } from "@/lib/auth/session";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export const dynamic = "force-dynamic";
-export const metadata = { title: "Create a new event" };
+export const metadata = {
+  title: "Create a new event",
+  robots: PRIVATE_ROBOTS,
+};
 
 export default async function NewEventPage() {
   if (!isSupabaseConfigured) {

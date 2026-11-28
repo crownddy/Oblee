@@ -12,6 +12,9 @@ import { Icon } from "@/components/ui/Icon";
 import { getViewer } from "@/lib/auth/session";
 import { categoryColor, categoryLabel } from "@/lib/constants";
 import { getEventForViewer } from "@/lib/services/events";
+import { eventJsonLd, eventMetadata, serializeJsonLd } from "@/lib/seo";
+import { siteUrl } from "@/lib/supabase/config";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { coverStyle } from "@/lib/utils/events";
 import { contactLink, contactText, directionsUrl, formatEventDate, formatTime } from "@/lib/utils/format";
 import { CONTACT_COLORS, CONTACT_ICONS } from "@/lib/constants";
@@ -21,12 +24,10 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const event = await getEventForViewer(id);
-  if (!event) return { title: "Event not found" };
-  return {
-    title: event.title,
-    description: event.description.slice(0, 160),
-    openGraph: { title: event.title, description: event.description.slice(0, 160) },
-  };
+  // A missing, private-without-grant or removed event answers 404 below; the
+  // metadata stays neutral so the response never hints that a row exists.
+  if (!event) return { title: "Event not found", robots: { index: false, follow: false } };
+  return eventMetadata(event);
 }
 
 export default async function EventPage({ params }: { params: Promise<{ id: string }> }) {
@@ -36,11 +37,13 @@ export default async function EventPage({ params }: { params: Promise<{ id: stri
 
   const viewer = await getViewer();
   const location = event.city ? `${event.venue}, ${event.city}` : event.venue;
+  const structuredData = eventJsonLd(event, siteUrl);
   const hasTables = event.tables.length > 0;
   const hasPricing = event.tickets.length > 0 || hasTables;
 
   return (
     <div className="page">
+      {structuredData ? <JsonLd data={serializeJsonLd(structuredData)} /> : null}
       <div className="body">
         <div className="hero" style={coverStyle(event)}>
           <div className="t">
