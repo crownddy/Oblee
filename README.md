@@ -102,6 +102,7 @@ Migrations live in `supabase/migrations` and are idempotent where practical:
 | `0010_private_event_images.sql` | `event-images` bucket switched to private, `can_read_event_image()` and the storage read policy, legacy public URLs rewritten to object paths, per-organiser image ownership trigger |
 | `0011_age_verification.sql` | `my_age_status()`, `set_my_date_of_birth()`, `is_verified_adult()`, the publish trigger for unverified accounts, and `admin_list_users().age_verified` |
 | `0012_content_limits.sql` | Length caps on the short event text fields and `is_valid_timezone()`, so a direct RPC call cannot store megabytes on a row or a timezone that breaks date formatting |
+| `0013_featured_cleanup.sql` | `archive_event` also deletes the event's `featured_events` row, so an archived event cannot hold a carousel slot |
 
 ### Roles and security
 
@@ -196,7 +197,8 @@ design/                the supplied visual prototype (reference only)
 
 ## Pages and features
 
-* **Home** — category rail, search, date jump, quick filters, featured carousel, upcoming list.
+* **Home** — category rail, search, date jump, quick filters, featured carousel (admin
+  placements, or the discovery page when nothing is featured), upcoming list.
 * **Explore** — search + category + date filtering with pagination, saved-state aware cards.
 * **Event detail** — hero cover, schedule, venue, directions link, security/identity notes,
   ticket and table pricing, RSVP contact buttons (WhatsApp/call/email), embedded map, save,

@@ -232,6 +232,16 @@ export async function listPublishedEvents(options: ListEventsOptions = {}): Prom
   };
 }
 
+/**
+ * Eligibility travels with the query rather than the result set: with `!inner`,
+ * PostgREST turns these into joins, so stale placements (archived, removed or
+ * private events) never occupy the ranked slots the limit counts.
+ */
+export const FEATURED_ELIGIBILITY_FILTERS = [
+  { column: "events.status", value: "published" },
+  { column: "events.visibility", value: "public" },
+] as const;
+
 export async function listFeaturedEvents(limit = FEATURED_LIMIT): Promise<EventSummary[]> {
   const viewer = await getViewer();
 
@@ -244,11 +254,14 @@ export async function listFeaturedEvents(limit = FEATURED_LIMIT): Promise<EventS
   }
 
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
+  let request = supabase
     .from("featured_events")
     .select(`rank, events!inner(${EVENT_LIST_COLUMNS})`)
-    .order("rank", { ascending: true })
-    .limit(limit);
+    .order("rank", { ascending: true });
+  for (const filter of FEATURED_ELIGIBILITY_FILTERS) {
+    request = request.eq(filter.column, filter.value);
+  }
+  const { data, error } = await request.limit(limit);
 
   if (error) {
     console.error("listFeaturedEvents", error.message);

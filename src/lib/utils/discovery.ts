@@ -1,4 +1,12 @@
-import { CATEGORIES, DEFAULT_TIMEZONE, PAGE_SIZE, isEventCategory, type EventCategory } from "@/lib/constants";
+import {
+  CATEGORIES,
+  DEFAULT_TIMEZONE,
+  FEATURED_LIMIT,
+  PAGE_SIZE,
+  isEventCategory,
+  type EventCategory,
+} from "@/lib/constants";
+import type { EventSummary } from "@/lib/types/domain";
 import { searchTerms } from "@/lib/utils/events";
 import { resolveDateFilter, type InstantRange } from "@/lib/utils/ranges";
 
@@ -121,4 +129,40 @@ export function buildDiscoveryQuery(input: DiscoveryQueryInput = {}): DiscoveryQ
     orGroups: terms.map(orFiltersForTerm),
     ...pageWindow(input.page, input.pageSize),
   };
+}
+
+/**
+ * Slides for the Home carousel. Curated placements win outright; when there are
+ * none the discovery page stands in, so the prototype's carousel does not vanish
+ * on a site that has events but has not featured any. Duplicate ids collapse, so
+ * a repeated join row can never render the same event twice.
+ */
+export function carouselEvents(
+  featured: EventSummary[],
+  fallback: EventSummary[],
+  limit: number = FEATURED_LIMIT,
+): EventSummary[] {
+  const source = featured.length > 0 ? featured : fallback;
+  const seen = new Set<string>();
+  const slides: EventSummary[] = [];
+  for (const event of source) {
+    if (seen.has(event.id)) continue;
+    seen.add(event.id);
+    slides.push(event);
+    if (slides.length >= limit) break;
+  }
+  return slides;
+}
+
+/**
+ * The carousel belongs to Home only, and steps aside while a search term or a
+ * date filter is active. A category filter is part of discovery browsing, so the
+ * carousel keeps rendering there.
+ */
+export function shouldShowCarousel(
+  mode: "home" | "explore",
+  filters: { query?: string; date?: string },
+  slides: EventSummary[],
+): boolean {
+  return mode === "home" && !filters.query && !filters.date && slides.length > 0;
 }
