@@ -79,7 +79,7 @@ publish succeeded.
 | --- | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | yes | Supabase project URL (Project Settings → API) |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | yes | Supabase anon/public key. Safe in the browser; RLS still applies |
-| `NEXT_PUBLIC_SITE_URL` | recommended | Canonical base URL. Used for auth emails, canonicals, `robots.txt`, `sitemap.xml` and structured data. Set it to the production origin before deploying |
+| `NEXT_PUBLIC_SITE_URL` | optional | Canonical origin for auth emails, canonicals, `robots.txt`, `sitemap.xml` and structured data. On Vercel it falls back to the project's production domain, and a localhost value is ignored there |
 | `GOOGLE_SITE_VERIFICATION` | optional | Google Search Console HTML-tag token. Rendered only when set; never commit a value |
 | `ALLOWED_DEV_ORIGINS` | optional | Comma-separated extra origins allowed to hot-reload in development |
 
@@ -230,8 +230,20 @@ first HTML response. Signed-in pages send `noindex` and are also disallowed in `
 | Social card | `src/app/opengraph-image.tsx` | 1200×630 brand card for every page. Event covers are private-bucket signed URLs, so they are not reused |
 | Invalid ids | `src/lib/services/events.ts` | A malformed id resolves to "no event" without querying, so `/events/not-a-uuid` is a 404 rather than a database error |
 
-Canonical, sitemap and structured-data URLs come from `NEXT_PUBLIC_SITE_URL`, so production must set
-it to the public origin. Unset, it falls back to `http://localhost:3000`.
+Canonical, sitemap and structured-data URLs come from one resolver, `src/lib/site-url.ts`:
+
+| Order | Source | Used for |
+| --- | --- | --- |
+| 1 | `NEXT_PUBLIC_SITE_URL` | An explicit public origin the operator chose |
+| 2 | `VERCEL_PROJECT_PRODUCTION_URL` | The project's production domain, injected by Vercel into every deployment |
+| 3 | `VERCEL_URL` | The deployment's own host, so previews never advertise localhost |
+| 4 | `http://localhost:3000` | Local development |
+
+A localhost value is ignored while a Vercel host exists, so an `.env.local` copied into the Vercel
+dashboard cannot publish `http://localhost:3000` in canonicals, `robots.txt` or the sitemap. The
+module is server-only and must stay out of client components, since `VERCEL_*` variables are not
+available in the browser.
+
 
 ### Google Search Console
 

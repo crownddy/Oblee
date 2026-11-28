@@ -23,7 +23,7 @@ import {
   websiteJsonLd,
 } from "@/lib/seo";
 import { getEventForViewer, listSitemapEvents } from "@/lib/services/events";
-import { siteUrl } from "@/lib/supabase/config";
+import { siteUrl } from "@/lib/site-url";
 import type { EventDetail } from "@/lib/types/domain";
 
 const SITE = "https://oblee.example";

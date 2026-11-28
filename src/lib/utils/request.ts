@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { siteUrl } from "@/lib/supabase/config";
+import { siteUrl } from "@/lib/site-url";
 
 /** Public origin of the current request, used for auth email redirects. */
 export async function getOrigin(): Promise<string> {

@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { buildSitemapEntries } from "@/lib/seo";
 import { listSitemapEvents } from "@/lib/services/events";
-import { siteUrl } from "@/lib/supabase/config";
+import { siteUrl } from "@/lib/site-url";
 
 // Events change during the day; an hourly rebuild keeps the file honest without
 // querying the database on every request.

@@ -16,8 +16,6 @@ export const SUPABASE_ANON_KEY = anonKey;
 export const isSupabaseConfigured =
   looksReal(url, 20) && url.startsWith("https://") && looksReal(anonKey, 40);
 
-export const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
-
 export const REQUIRED_ENV_VARS = [
   {
     name: "NEXT_PUBLIC_SUPABASE_URL",
@@ -29,7 +27,8 @@ export const REQUIRED_ENV_VARS = [
   },
   {
     name: "NEXT_PUBLIC_SITE_URL",
-    description: "Public base URL used in verification and password-reset emails.",
+    description:
+      "Public origin for canonicals, the sitemap, robots.txt and auth emails. Optional on Vercel: it falls back to the project's production domain.",
   },
 ] as const;
 

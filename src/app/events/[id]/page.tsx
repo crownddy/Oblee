@@ -13,7 +13,7 @@ import { getViewer } from "@/lib/auth/session";
 import { categoryColor, categoryLabel } from "@/lib/constants";
 import { getEventForViewer } from "@/lib/services/events";
 import { eventJsonLd, eventMetadata, serializeJsonLd } from "@/lib/seo";
-import { siteUrl } from "@/lib/supabase/config";
+import { siteUrl } from "@/lib/site-url";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { coverStyle } from "@/lib/utils/events";
 import { contactLink, contactText, directionsUrl, formatEventDate, formatTime } from "@/lib/utils/format";
