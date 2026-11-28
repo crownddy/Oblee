@@ -4,6 +4,14 @@ import { useEffect, useState } from "react";
 
 const CONFETTI = ["#ff4fa3", "#ffb000", "#8b5cf6", "#22d3ee", "#ff6b4a"];
 
+/**
+ * The mark animation runs once (pin, trail, wordmark, tagline) and the curtain
+ * then steps aside, so the server-rendered page is reachable in ~3s rather than
+ * ~4.4s. Reduced-motion visitors skip the intro entirely.
+ */
+const HOLD_MS = 2400;
+const EXIT_MS = 700;
+
 export function Splash() {
   const [leaving, setLeaving] = useState(false);
   const [gone, setGone] = useState(false);
@@ -13,16 +21,26 @@ export function Splash() {
     // A repeat visit is hidden by CSS (html[data-splash="seen"] .spl); skip the timers.
     if (document.documentElement.getAttribute("data-splash") === "seen") return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const finish = () => {
-      setLeaving(true);
+    const remember = () => {
       try {
         sessionStorage.setItem("oblee-splash", "1");
       } catch {
         /* ignore */
       }
-      window.setTimeout(() => setGone(true), 800);
     };
-    const timer = window.setTimeout(finish, reduced ? 1200 : 3600);
+    // Nothing to animate for someone who asked for less motion, so the page
+    // underneath is available immediately.
+    if (reduced) {
+      remember();
+      const skip = window.setTimeout(() => setGone(true), 0);
+      return () => window.clearTimeout(skip);
+    }
+    const finish = () => {
+      setLeaving(true);
+      remember();
+      return window.setTimeout(() => setGone(true), EXIT_MS);
+    };
+    const timer = window.setTimeout(finish, HOLD_MS);
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape" || event.key === "Enter") finish();
     };
@@ -42,7 +60,7 @@ export function Splash() {
     } catch {
       /* ignore */
     }
-    window.setTimeout(() => setGone(true), 800);
+    window.setTimeout(() => setGone(true), EXIT_MS);
   };
 
   return (
@@ -106,12 +124,12 @@ export function Splash() {
         </svg>
         <i className="rp" />
         <i className="rp" style={{ animationDelay: "1.75s" }} />
-        <img className="pin" src="/brand/logo-pin.png" alt="" width={198} height={240} />
+        <img className="pin" src="/brand/logo-pin.png" alt="" width={198} height={240} loading="lazy" decoding="async" />
       </div>
-      <img className="wm2 lt" src="/brand/wordmark-on-light.png" alt="Oblee" width={319} height={100} />
-      <img className="wm2 dk" src="/brand/wordmark-on-dark.png" alt="" />
-      <img className="stl lt" src="/brand/tagline-on-light.png" alt="Find the party you love" width={302} height={44} />
-      <img className="stl dk" src="/brand/tagline-on-dark.png" alt="" />
+      <img className="wm2 lt" src="/brand/wordmark-on-light.png" alt="Oblee" width={319} height={100} loading="lazy" decoding="async" />
+      <img className="wm2 dk" src="/brand/wordmark-on-dark.png" alt="" width={319} height={100} loading="lazy" decoding="async" />
+      <img className="stl lt" src="/brand/tagline-on-light.png" alt="Find the party you love" width={302} height={44} loading="lazy" decoding="async" />
+      <img className="stl dk" src="/brand/tagline-on-dark.png" alt="" width={302} height={44} loading="lazy" decoding="async" />
     </div>
   );
 }

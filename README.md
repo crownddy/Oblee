@@ -245,6 +245,25 @@ The tag is rendered only when the variable is present; no token is stored in the
 Verification and indexing cannot be confirmed from the repository alone: they need the deployed
 domain and a Search Console account.
 
+## Headings and first paint
+
+Every public page has exactly one `<h1>`, and the tags that changed kept their original CSS:
+
+| Page | Outline |
+| --- | --- |
+| `/` | `h1` "Discover events around you" → `h2` carousel slide and "Upcoming Events" → `h3` event cards |
+| `/explore` | `h1` "Explore events" (the existing section title) → `h3` event cards |
+| `/events/[id]` | `h1` = the event title |
+| Other pages | `PageHeader` renders the screen title as `h1` |
+
+The rules in `globals.css` were extended to the new tags (`.sec h1,h2,h3`, `.pc h3,h4`, `.czi h2,h3`,
+`.ch h1`) so nothing renders at a browser default size.
+
+The intro curtain (`src/components/layout/Splash.tsx`) holds for `HOLD_MS` (2400 ms) and leaves over
+`EXIT_MS` (700 ms), long enough for the mark, wordmark and tagline animation to finish. Visitors who
+ask for reduced motion skip it entirely, and its artwork is `loading="lazy"`, so a session that never
+shows the curtain never downloads it.
+
 ## Deployment
 
 The app is a standard Next.js project with no custom server. On Vercel: import the repository,
@@ -267,9 +286,9 @@ into the build, so set them before the first deploy, not afterwards.
 * Search Console verification and indexing cannot be confirmed from the repository: they need the
   deployed domain, the `GOOGLE_SITE_VERIFICATION` secret and a Search Console account. In preview
   mode the sitemap lists the fixed public pages only, because no event records exist.
-* Core Web Vitals were not measured with field data (no CrUX access). Only causes visible in the
-  build were addressed: image dimensions on the splash, font `display: swap`, and one database
-  round trip shared between metadata and page render instead of two.
+* Core Web Vitals were not measured with field data (no CrUX access). Measurements in the pull
+  request come from one headless Chrome profile with a 4x CPU throttle and a disabled cache, so they
+  compare this revision against the previous one rather than describing real visitors.
 * `npm run test:db` needs Docker. Without it, `npm test` still covers the shared application rules.
 * Existing accounts created before `0009_age_restriction.sql` keep a null `date_of_birth` until a
   date is submitted at `/verify-age`. Until then they can browse, save and archive, but cannot

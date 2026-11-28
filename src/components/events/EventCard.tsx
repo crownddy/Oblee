@@ -49,7 +49,7 @@ export function EventCard({
           {price ? <span className={`pb${event.isFree ? " free" : ""}`}>{price}</span> : null}
         </div>
         <SaveButton eventId={event.id} saved={event.isSaved} signedIn={signedIn} title={event.title} />
-        <h4>{event.title}</h4>
+        <h3>{event.title}</h3>
         <p>
           <Icon name="pin" size={11} />
           {location}, {formatTime(event.startsAt, event.timezone)}

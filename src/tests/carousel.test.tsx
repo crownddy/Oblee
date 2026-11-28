@@ -129,7 +129,7 @@ describe("one slide renders the carousel", () => {
 
     expect(screen.getByRole("region", { name: "Featured events" })).toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Only Party, 1 of 1" })).toBeInTheDocument();
-    expect(screen.getAllByRole("heading", { level: 3 })[0]).toHaveTextContent("Only Party");
+    expect(screen.getAllByRole("heading", { level: 2 })[0]).toHaveTextContent("Only Party");
   });
 
   it("renders nothing when handed an empty list", () => {

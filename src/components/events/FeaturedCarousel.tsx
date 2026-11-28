@@ -129,7 +129,7 @@ export function FeaturedCarousel({ events }: { events: EventSummary[] }) {
         <Icon name="chevr" size={18} />
       </button>
       <div className="czi f" key={active.id} aria-live="polite">
-        <h3>{active.title}</h3>
+        <h2>{active.title}</h2>
         <p>
           <Icon name="pin" size={12} /> {active.city ? `${active.venue}, ${active.city}` : active.venue}
         </p>

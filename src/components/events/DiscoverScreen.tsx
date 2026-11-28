@@ -49,12 +49,14 @@ export async function DiscoverScreen({
       <SiteHeader signedIn={Boolean(viewer)} displayName={viewer?.profile?.fullName} />
       <div className="body">
         <div className="pad">
+          {mode === "home" ? <h1 className="pgt">Discover events around you</h1> : null}
+
           <DiscoverFilters path={path} initialQuery={query} category={category} date={date} />
 
           {showCarousel ? <FeaturedCarousel events={slides} /> : null}
 
           <div className="sec">
-            <h3>{result.events.length === 0 ? (mode === "home" ? "Upcoming Events" : "Explore events") : mode === "home" ? "Upcoming Events" : "Explore events"}</h3>
+            {mode === "home" ? <h2>Upcoming Events</h2> : <h1>Explore events</h1>}
             {mode === "home" ? (
               <Link href="/explore">See all</Link>
             ) : hasFilters ? (
